@@ -30,7 +30,7 @@ class PhoneStateListenerObserver(private val telephonyManager: TelephonyManager)
 
     @Suppress("DEPRECATION")
     override fun unregister() {
-        listener?.let { telephonyManager.listen(it, PhoneStateListener.LISTEN_CALL_STATE_NONE) }
+        listener?.let { telephonyManager.listen(it, PhoneStateListener.LISTEN_NONE) }
         listener = null
     }
 

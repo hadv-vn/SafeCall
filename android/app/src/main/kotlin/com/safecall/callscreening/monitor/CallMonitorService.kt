@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
@@ -243,10 +244,15 @@ class CallMonitorService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
-        // startForeground(id, notification, type) co tu API 29 (minSdkVersion cua project) - khong
-        // can nhanh rieng theo SDK_INT, chi API 34+ moi BAT BUOC enforce dung type nhung tham so
-        // nay vo hai/duoc ho tro tu 29.
-        startForeground(FOREGROUND_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL)
+        // Sua sau khi build that phat hien loi (xem ghi chu AndroidManifest.xml): KHONG dung type
+        // "phoneCall" (doi hoi MANAGE_OWN_CALLS/vai tro Dialer, SafeCall khong co). "specialUse"
+        // (FOREGROUND_SERVICE_TYPE_SPECIAL_USE) chi dinh nghia tu API 34 - duoi do dung type mac
+        // dinh (0 = khong khai bao type cu the, van hop le tren API 29-33).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(FOREGROUND_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(FOREGROUND_NOTIFICATION_ID, notification)
+        }
     }
 
     companion object {

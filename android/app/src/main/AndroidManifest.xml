@@ -8,7 +8,12 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <!-- Sua sau khi build that phat hien loi: foregroundServiceType="phoneCall" tren API 34+ bat
+         buoc app phai giu MANAGE_OWN_CALLS hoac vai tro Dialer mac dinh (SecurityException luc
+         chay that) - SafeCall la CallScreeningService, KHONG phai app quay so, khong du dieu kien
+         dung type do. Dung "specialUse" (API 34+, FOREGROUND_SERVICE_SPECIAL_USE) thay the - dung
+         cho truong hop theo doi nen khong khop category chuan nao khac. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- FR-8/ADR-007: bat buoc cho RingingScamOverlay. Van can khai bao <uses-permission> du
          duoc xin qua Settings (ACTION_MANAGE_OVERLAY_PERMISSION), khong qua dialog runtime. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -53,7 +58,11 @@
         <service
             android:name=".callscreening.monitor.CallMonitorService"
             android:exported="false"
-            android:foregroundServiceType="phoneCall" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Theo doi trang thai cuoc goi den de phat hien so lua dao (scam-call monitoring)" />
+        </service>
 
         <receiver
             android:name=".callscreening.monitor.ScamConfirmationReceiver"

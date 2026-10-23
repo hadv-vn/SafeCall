@@ -199,7 +199,7 @@ class PendingPromptRegistry(
      * goi tu `CallMonitorService.handleCallEnded` ngay sau `insertCallRecord`, theo dung co che
      * flush tong quat da chot o ERD (ap dung cho CA HAI nhanh YES/NO).
      */
-    fun findResolvedRingingPromptFor(normalizedNumber: String): ResolvedRingingPrompt? {
+    private fun findResolvedRingingPromptFor(normalizedNumber: String): ResolvedRingingPrompt? {
         dbHelper.writableDatabase.rawQuery(
             """
             SELECT resolved_action, termination_outcome FROM pending_prompts

@@ -19,14 +19,18 @@ class SafeCallDatabaseHelper(context: Context) :
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
+        // Sua loi phat hien khi test tren thiet bi that (cung loi nhu ben Dart/sqflite):
+        // SQLiteOpenHelper cua Android tu boc onCreate() trong 1 transaction - PRAGMA
+        // journal_mode/busy_timeout deu KHONG duoc phep (hoac bi am tham bo qua) khi dang trong
+        // transaction. PHAI dat o onConfigure() (chay TRUOC moi transaction, moi lan mo connection).
+        db.execSQL("PRAGMA journal_mode = WAL")
+        db.execSQL("PRAGMA synchronous = NORMAL")
+        db.execSQL("PRAGMA busy_timeout = ${SafeCallSchema.PRAGMA_BUSY_TIMEOUT_OTHER_MS}")
         // PRAGMA foreign_keys la PER-CONNECTION - PHAI set lai o moi lan mo (ERD muc "Thiet lap PRAGMA").
         db.setForeignKeyConstraintsEnabled(true)
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("PRAGMA journal_mode = WAL")
-        db.execSQL("PRAGMA synchronous = NORMAL")
-        db.execSQL("PRAGMA busy_timeout = ${SafeCallSchema.PRAGMA_BUSY_TIMEOUT_OTHER_MS}")
         SafeCallSchema.CREATE_STATEMENTS.forEach { statement -> db.execSQL(statement) }
         recordMigrationApplied(db)
     }

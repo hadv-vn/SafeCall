@@ -125,16 +125,24 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> with Widget
     final step = _currentStep;
 
     if (step.isSettingsRedirect) {
-      // Khong co ket qua dong bo - chi mo Settings roi cho resume-check xu ly tiep
-      // (_recheckAfterSettingsReturn), KHONG quyet dinh granted/denied ngay tai day.
+      // Sua loi phat hien khi test tren thiet bi that: requestPermission co the tra GRANTED
+      // NGAY LAP TUC (vd quyen da duoc cap san tu truoc, hoac tu dong cap boi OEM/AVD debug) - khi
+      // do KHONG duoc mo Settings (code Kotlin da tu bo qua startActivity dung), va cung KHONG
+      // duoc chuyen sang settingsPending (se "cho mai khong thay gi xay ra" vi khong co Settings
+      // nao de quay lai kich hoat resume-check). Phai kiem tra ket qua truoc khi quyet dinh.
       setState(() => _requestInFlight = true);
+      PermissionStatus status;
       try {
-        await _bridge.requestPermission(step.permissionKeys.single);
+        status = await _bridge.requestPermission(step.permissionKeys.single);
       } finally {
         if (mounted) setState(() => _requestInFlight = false);
       }
       if (!mounted) return;
-      setState(() => _phase = _FlowPhase.settingsPending);
+      if (status == PermissionStatus.granted) {
+        _advanceToNextStepOrSummary();
+      } else {
+        setState(() => _phase = _FlowPhase.settingsPending);
+      }
       return;
     }
 

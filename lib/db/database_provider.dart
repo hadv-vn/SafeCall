@@ -27,13 +27,16 @@ class DatabaseProvider {
       path,
       version: kSchemaVersion,
       onConfigure: (db) async {
-        // PRAGMA foreign_keys la PER-CONNECTION - PHAI set lai o moi lan mo.
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
-      onCreate: (db, version) async {
+        // Sua loi phat hien khi test tren thiet bi that: sqflite tu dong boc onCreate trong 1
+        // transaction (BEGIN...COMMIT) - PRAGMA journal_mode/busy_timeout/foreign_keys deu KHONG
+        // duoc phep (hoac bi am tham bo qua) khi dang trong transaction. PHAI dat o onConfigure
+        // (chay TRUOC moi transaction, moi lan mo connection) - khong duoc dat trong onCreate.
         await db.execute('PRAGMA journal_mode = WAL');
         await db.execute('PRAGMA synchronous = NORMAL');
         await db.execute('PRAGMA busy_timeout = $kPragmaBusyTimeoutOtherMs');
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
+      onCreate: (db, version) async {
         for (final statement in createStatements) {
           await db.execute(statement);
         }
