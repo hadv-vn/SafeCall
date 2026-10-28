@@ -1,0 +1,10 @@
+# Copy file nay thanh "key.properties" (cung thu muc android/) va TU DIEN gia tri thuc cua ban.
+# KHONG commit file "key.properties" thuc (da gitignore) va KHONG dua mat khau/keystore thuc vao chat voi AI -
+# day la luat cung cua du an (xem docs/governance/RISK-SAFECALL.md, muc R14): AI khong duoc chay/tao/biet secret.
+#
+# storeFile: duong dan toi file .jks, tinh TUONG DOI tu thu muc android/ (hoac duong dan tuyet doi).
+# Neu ban tao keystore bang lenh goi y ben duoi, dat storeFile=upload-keystore.jks la dung.
+storeFile=upload-keystore.jks
+storePassword=
+keyAlias=upload
+keyPassword=
