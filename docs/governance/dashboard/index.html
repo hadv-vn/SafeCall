@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SafeCall — Governance Dashboard</title>
+<style>
+  :root {
+    --surface-1:  #fcfcfb;
+    --page-plane: #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:   #e1e0d9;
+    --baseline:   #c3c2b7;
+    --border:     rgba(11,11,11,0.10);
+    --status-good:     #0ca30c;
+    --status-warning:  #fab219;
+    --status-serious:  #ec835a;
+    --status-critical: #d03b3b;
+    --status-neutral:  #898781;
+    --series-1: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1:  #1a1a19;
+      --page-plane: #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:   #2c2c2a;
+      --baseline:   #383835;
+      --border:     rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  header.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  header.top h1 { font-size: 22px; margin: 0; }
+  .meta { color: var(--text-muted); font-size: 13px; }
+
+  .live-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); margin: 6px 0 20px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot.live { background: var(--status-good); box-shadow: 0 0 0 0 rgba(12,163,12,0.5); animation: pulse 2s infinite; }
+  .dot.static { background: var(--status-neutral); }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(12,163,12,0.45); }
+    70%  { box-shadow: 0 0 0 6px rgba(12,163,12,0); }
+    100% { box-shadow: 0 0 0 0 rgba(12,163,12,0); }
+  }
+  .static-hint { color: var(--text-muted); }
+  .static-hint code { background: var(--surface-1); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+
+  .release-banner { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; margin-bottom: 28px; border: 1px solid var(--border); background: var(--surface-1); }
+  .release-banner .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .release-banner strong { font-size: 14px; }
+
+  section { margin-bottom: 36px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); margin: 0 0 12px; font-weight: 600; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .label { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  .tile .value-row { display: flex; align-items: baseline; gap: 8px; }
+  .tile .value { font-size: 26px; font-weight: 600; line-height: 1; }
+  .tile .target { font-size: 11.5px; color: var(--text-muted); }
+  .tile .note { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+  .status-good     { background: var(--status-good); }
+  .status-warning  { background: var(--status-warning); }
+  .status-serious  { background: var(--status-serious); }
+  .status-critical { background: var(--status-critical); }
+  .status-neutral  { background: var(--status-neutral); }
+  .status-stroke-good     { stroke: var(--status-good); }
+  .status-stroke-warning  { stroke: var(--status-warning); }
+  .status-stroke-serious  { stroke: var(--status-serious); }
+  .status-stroke-critical { stroke: var(--status-critical); }
+  .status-stroke-neutral  { stroke: var(--status-neutral); }
+
+  .tile.gauge { text-align: center; }
+  .tile.gauge .label { text-align: center; }
+  .gauge-box { position: relative; width: 132px; height: 78px; margin: 2px auto 0; }
+  .gauge-svg { display: block; width: 100%; height: 100%; }
+  .gauge-track { fill: none; stroke: var(--gridline); stroke-width: 10; stroke-linecap: round; }
+  .gauge-fill { fill: none; stroke-width: 10; stroke-linecap: round; }
+  .gauge-tick { stroke: var(--text-muted); stroke-width: 2; }
+  .gauge-center { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; }
+  .gauge-center .gauge-value { font-size: 21px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .gauge-footer { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; font-size: 11.5px; color: var(--text-secondary); }
+  .tile.gauge .note { text-align: left; }
+
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+
+  .chart-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .toggle-btn { font-size: 12px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+  .toggle-btn:hover { color: var(--text-primary); }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); margin-top: 12px; }
+  .legend .item { display: flex; align-items: center; gap: 6px; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 2px; }
+
+  .bar-row { display: grid; grid-template-columns: 150px 1fr 48px; align-items: center; gap: 10px; height: 26px; }
+  .bar-row .rid { font-size: 12px; color: var(--text-secondary); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { position: relative; height: 16px; background: var(--gridline); border-radius: 3px; overflow: hidden; }
+  .bar-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px 0 0 3px; }
+  .bar-score { font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .bar-label-outer { font-size: 11.5px; color: var(--text-muted); grid-column: 2 / 3; margin-top: -2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  table.gov { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.gov th { text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 10px; border-bottom: 1px solid var(--baseline); }
+  table.gov td { padding: 8px 10px; border-bottom: 1px solid var(--gridline); vertical-align: top; }
+  table.gov td.num { font-variant-numeric: tabular-nums; }
+  table.gov tr:last-child td { border-bottom: none; }
+
+  ol.steps { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.6; color: var(--text-primary); }
+  ol.steps li { margin-bottom: 6px; }
+
+  footer { border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  footer code { background: var(--surface-1); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>SafeCall — Governance Dashboard</h1>
+    <div class="meta" id="generatedAt">—</div>
+  </header>
+  <div class="live-row" id="liveRow">
+    <span class="dot static" id="liveDot"></span>
+    <span id="liveText">Đang kiểm tra kết nối…</span>
+  </div>
+
+  <div class="release-banner" id="releaseBanner">
+    <span class="sw" id="releaseSwatch"></span>
+    <strong id="releaseLabel">—</strong>
+  </div>
+
+  <section>
+    <h2>KPI vận hành (Mini Dashboard — EX-05)</h2>
+    <div class="kpi-grid" id="kpiDashboard"></div>
+  </section>
+
+  <section>
+    <h2>Knowledge Health (§8.2)</h2>
+    <div class="kpi-grid" id="kpiKnowledge"></div>
+  </section>
+
+  <section>
+    <h2>Risk Register — theo điểm L×I</h2>
+    <div class="chart-card">
+      <div class="chart-head">
+        <span class="meta">14 rủi ro, sắp xếp giảm dần</span>
+        <button class="toggle-btn" id="riskToggle">Xem dạng bảng</button>
+      </div>
+      <div id="riskChart"></div>
+      <table class="gov hidden" id="riskTable"><thead>
+        <tr><th>ID</th><th>Rủi ro</th><th>L</th><th>I</th><th>L×I</th><th>Owner</th></tr>
+      </thead><tbody></tbody></table>
+      <div class="legend" id="riskLegend"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>RTM — trạng thái test theo FR/NFR</h2>
+    <table class="gov" id="rtmTable"><thead>
+      <tr><th>Mã</th><th>Yêu cầu</th><th>Trạng thái</th></tr>
+    </thead><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h2>Delegation Map — gap governance thật (Leash thực tế ≠ đáng lẽ)</h2>
+    <table class="gov" id="gapsTable"><thead>
+      <tr><th>WBS</th><th>Task</th><th>Thực tế</th><th>Đáng lẽ</th><th>Lý do</th></tr>
+    </thead><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h2>Decision Log — AI sai → người sửa</h2>
+    <table class="gov" id="decisionTable"><thead>
+      <tr><th>#</th><th>Bước/Task</th><th>AI sai gì</th><th>Mức ủy quyền</th></tr>
+    </thead><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h2>Bước kế tiếp (từ Weekly Report)</h2>
+    <ol class="steps" id="nextSteps"></ol>
+  </section>
+
+  <footer>
+    <div id="sourcesLine"></div>
+    <div style="margin-top:8px">
+      Dữ liệu trong <code>data.json</code> được cập nhật TAY, đối chiếu trực tiếp với các file
+      <code>docs/governance/*.md</code> — không tự parse markdown để tránh đọc sai số liệu.
+      Mở trực tiếp file này (<code>file://</code>) sẽ hiển thị bản chụp gần nhất, không tự làm mới.
+      Để dashboard tự làm mới khi <code>data.json</code> đổi, chạy một server tĩnh trong thư mục này rồi mở qua http, ví dụ:
+      <code>python -m http.server 8080</code> → <code>http://localhost:8080/</code> (trang tự poll lại mỗi 5 giây).
+    </div>
+  </footer>
+
+</div>
+
+<script id="fallback-data" type="application/json">
+{
+  "project": "SafeCall — Phase 1",
+  "generatedAt": "2026-10-25T19:45:00+07:00",
+  "releaseStatus": { "level": "critical", "label": "KHÔNG release/publish Play Store ở trạng thái hiện tại" },
+  "dashboardKpis": [
+    { "id": "nen", "label": "Nén (Compression)", "display": "N/A", "status": "neutral", "note": "Mẫu số (giờ thật) không có — TELEMETRY ghi N/A, không bịa số.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "rework", "label": "Rework Rate", "display": "44.4%", "status": "warning", "note": "4 vòng rework / 9 vòng lặp quan sát (3 khối Telemetry, tính cả lần 2 — rebuild+test FR-9, 0 rework). Sửa 2026-10-25 (lần 2) — trước đó ghi 50% (4/8) vì chưa tính khối thứ 3.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "humanedit", "label": "Human-edit Rate", "display": "0%", "status": "neutral", "note": "Không có nghĩa AI không sai — người duyệt ở tầng quyết định, không sửa dòng code.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "testcov", "label": "Test Coverage theo FR", "display": "20%", "status": "critical", "note": "2/10 FR ở trạng thái Tested-Pass (FR-5, FR-7). FR-9: luồng thêm entry PREFIX qua UI đã test tay 2026-10-25 nhưng vẫn 'partial' (chặn cuộc gọi thật theo prefix chưa test) — không đổi mẫu số.", "source": "RTM-SAFECALL.md" },
+    { "id": "govgap", "label": "Governance Gap Rate", "display": "17.6%", "status": "warning", "note": "3 gap thật / 17 Task ≥L3 (lịch sử không đổi) — cả 3 đã được người dùng ký duyệt retroactive 2026-10-25 sau khi xem bằng chứng kỹ thuật thật. Không còn là gap 'chưa ai review'.", "source": "DELEGATION-MAP-SAFECALL.md" },
+    { "id": "riskopen", "label": "Risk Open Rate", "display": "100%", "status": "critical", "note": "10/10 rủi ro chính chưa có mitigation xác nhận xong.", "source": "RISK-SAFECALL.md" },
+    { "id": "testcount", "label": "Automated Test Case Count", "display": "58", "status": "good", "note": "Tăng từ 0 (2026-10-25) — golden-file PhoneNumberNormalizer, chưa chạy qua toolchain thật.", "source": "test/fixtures/phone_normalizer_golden.json" }
+  ],
+  "knowledgeHealth": [
+    { "id": "c1", "label": "Traceability Coverage", "display": "94.1%", "target": "≥80%", "status": "good", "note": "16/17 req có Design quyết định + code/test (hoặc kế hoạch test) trong RTM, sau khi stakeholder xác nhận NFR-5/6/7. Chỉ NFR-5 còn không trace (deferred Phase 2, chủ động).", "source": "RTM-SAFECALL.md, SRS v3.1" },
+    { "id": "c2", "label": "Change Coupling", "display": "N/A", "target": "≥70%", "status": "neutral", "note": "Chỉ 3 commit trong repo, phần lớn là 1 khối uncommitted — không có lịch sử change-set nhỏ để tính.", "source": "git log" },
+    { "id": "c3", "label": "Freshness", "display": "100%*", "target": "≥85%", "status": "warning", "note": "Point-in-time (2026-10-25) ngay sau khi sửa 2 KPI stale — chưa có cơ chế tự động giữ fresh.", "source": "đối chiếu tay 8 file governance" },
+    { "id": "c4", "label": "Orphan Rate", "display": "5.6%", "target": "≤15%", "status": "good", "note": "Chỉ còn NFR-5 orphan toàn diện (deferred Phase 2 theo quyết định stakeholder, không phải thiếu sót). NFR-6/7 đã có Design quyết định. Giảm từ 44.4%→22.2%→16.7%→5.6%.", "source": "RTM-SAFECALL.md, MODULEMAP-SAFECALL.md, SRS v3.1" },
+    { "id": "c5", "label": "Review Evidence", "display": "N/A", "target": "≥90%", "status": "neutral", "note": "Không có review-log tách biệt theo artefact; Human-edit=0 toàn bộ.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "c6", "label": "Decision Coverage", "display": "100%", "target": "≥75%", "status": "good", "note": "8/8 — ADR-003 đã phản ánh ngoại lệ Export/Share Sheet từ 2026-10-21; Risk/Weekly từng ghi sai là gap, đã sửa.", "source": "docs/adr/ADR-003-local-only-blocklist.md" },
+    { "id": "c7", "label": "Retrieval Quality", "display": "87.5%", "target": "≥70%", "status": "good", "note": "Spot-check 2 câu × 4 mục — verify file thật qua find; thiếu 1 decision record cho ngưỡng prefix FR-9.", "source": "KNOWLEDGE-HEALTH-SAFECALL.md" }
+  ],
+  "risks": [
+    { "id": "R2",  "label": "Overlay lúc đổ chuông chưa test đa OEM thật", "L": 4, "I": 5, "score": 20, "owner": "QA/PM" },
+    { "id": "R1",  "label": "Độ tin cậy phát hiện cuộc gọi API 29 vs 31+ chưa có test hồi quy", "L": 4, "I": 4, "score": 16, "owner": "Dev lead" },
+    { "id": "R11", "label": "AI viết code \"trước, không verify\" — lỗi chỉ lộ lúc build/test thật", "L": 4, "I": 4, "score": 16, "owner": "Dev lead" },
+    { "id": "R4",  "label": "Race condition prompt sau-cuộc-gọi vs overlay lúc-đổ-chuông chưa test", "L": 3, "I": 4, "score": 12, "owner": "Dev lead" },
+    { "id": "R3",  "label": "TelecomManager.endCall() chưa verify đa OEM thật", "L": 2, "I": 5, "score": 10, "owner": "Dev lead" },
+    { "id": "R6",  "label": "Hiệu năng matching khi blocklist lớn — sanity-check chưa chạy", "L": 2, "I": 5, "score": 10, "owner": "Dev lead" },
+    { "id": "R12", "label": "AI tự suy luận lại pseudocode đã mất thay vì dừng hỏi (hard-stop vi phạm)", "L": 2, "I": 5, "score": 10, "owner": "PM + Dev lead" },
+    { "id": "R5",  "label": "Ngưỡng prefix 4 ký tự chưa xác nhận với stakeholder", "L": 3, "I": 3, "score": 9, "owner": "PM" },
+    { "id": "R7",  "label": "Export dữ liệu bên thứ 3 qua Share Sheet — file không mã hoá (ADR-003 đã ghi nhận)", "L": 3, "I": 3, "score": 9, "owner": "PM" },
+    { "id": "R10", "label": "2 vòng fix phát sinh worst-case cao bị ẩn trong WBS", "L": 3, "I": 3, "score": 9, "owner": "PM" },
+    { "id": "R8",  "label": "Import gián đoạn giữa chừng — test crash chưa chạy", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" },
+    { "id": "R9",  "label": "Lệch normalizer Dart/Kotlin — golden-file viết xong, chưa chạy qua toolchain thật", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" },
+    { "id": "R13", "label": "Rubber-stamping governance — 3 gap cụ thể đã ký duyệt, cơ chế chặn tự động trước build vẫn chưa có", "L": 2, "I": 4, "score": 8, "owner": "PM" },
+    { "id": "R14", "label": "Dữ liệu thiết bị thật có thể dán nhầm vào prompt AI ở vòng test OEM", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" }
+  ],
+  "rtm": [
+    { "id": "FR-1", "label": "Chặn real-time (exact + prefix)", "status": "partial" },
+    { "id": "FR-2", "label": "Phát hiện cuộc gọi kết thúc + hỏi xác nhận", "status": "not-started" },
+    { "id": "FR-3", "label": "Xác nhận \"Có\" → thêm blocklist", "status": "not-started" },
+    { "id": "FR-4", "label": "Xác nhận \"Không\" / bỏ qua", "status": "not-started" },
+    { "id": "FR-5", "label": "Quản lý blocklist thủ công", "status": "pass" },
+    { "id": "FR-6", "label": "Lịch sử cuộc gọi", "status": "not-started" },
+    { "id": "FR-7", "label": "Onboarding và cấp quyền", "status": "pass" },
+    { "id": "FR-8", "label": "Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi", "status": "not-started" },
+    { "id": "FR-9", "label": "Chặn theo đầu số (prefix)", "status": "partial" },
+    { "id": "FR-10", "label": "Export/Import blocklist", "status": "partial" },
+    { "id": "DB", "label": "Cross-cutting — Schema & Database", "status": "pass" },
+    { "id": "NFR-1", "label": "Dữ liệu cá nhân bên thứ ba (xoá khi gỡ app, Export)", "status": "partial" },
+    { "id": "NFR-2", "label": "Minh bạch lý do xin quyền", "status": "pass" },
+    { "id": "NFR-3", "label": "Rủi ro chặn nhầm + hành động không thể hoàn tác", "status": "not-started" },
+    { "id": "NFR-4", "label": "Độ tin cậy phát hiện trạng thái cuộc gọi + hiệu năng", "status": "not-started" },
+    { "id": "NFR-5", "label": "Hiệu năng — deferred sang Phase 2 (quyết định stakeholder)", "status": "na" },
+    { "id": "NFR-6", "label": "Khả năng mở rộng — chốt 10.000 bản ghi/loại", "status": "not-started" },
+    { "id": "NFR-7", "label": "Pháp lý — Nghị định 13/2023/NĐ-CP, chưa review chi tiết", "status": "not-started" }
+  ],
+  "delegationGaps": [
+    { "wbs": "1.1.2", "task": "RoleModule + PermissionsModule (quyền hệ thống Android)", "actual": "A", "shouldBe": "A+", "reason": "Chạm quyền hệ thống — crash SecurityException đã xảy ra ở task tương tự (4.1.1). ✅ Ký duyệt retroactive 2026-10-25." },
+    { "wbs": "1.3.1", "task": "Schema DDL SQLite 2 phía", "actual": "A", "shouldBe": "A+", "reason": "Chạm toàn bộ tầng dữ liệu — lỗi PRAGMA-trong-transaction đã thực sự hỏng mọi màn hình đọc DB. ✅ Ký duyệt retroactive 2026-10-25." },
+    { "wbs": "4.1.1", "task": "CallMonitorService (foreground service)", "actual": "A", "shouldBe": "A+", "reason": "Task gây crash SecurityException thật — minh chứng trực tiếp cho lý do cần A+. ✅ Ký duyệt retroactive 2026-10-25." }
+  ],
+  "decisionLog": [
+    { "n": 1, "task": "Android resource setup", "whatWrong": "Sót file .md trong mipmap-hdpi làm mergeDebugResources fail", "level": "L3 / Leash A" },
+    { "n": 2, "task": "Gradle dependency resolution", "whatWrong": "file_picker 6.1.0 gọi API Flutter embedding đã xoá, compile fail", "level": "L3 / Leash A" },
+    { "n": 3, "task": "Manifest & service init", "whatWrong": "foregroundServiceType=phoneCall cần quyền Dialer — crash SecurityException thật", "level": "L3 nominal, đáng lẽ A+ (gap)" },
+    { "n": 4, "task": "Database init 2 phía", "whatWrong": "PRAGMA journal_mode=WAL trong transaction — SQLite error, hỏng toàn bộ đọc DB", "level": "L3 nominal, đáng lẽ A+ (gap)" },
+    { "n": 5, "task": "LLD review (pseudocode 4 hàm lõi)", "whatWrong": "Tự suy luận lại pseudocode đã mất thay vì DỪNG hỏi — vi phạm hard-stop", "level": "L5 Restricted (vi phạm)" }
+  ],
+  "weeklyNextSteps": [
+    "Chạy flutter test + gradle testDebugUnitTest thật để đóng hẳn R9 (58/58 phải pass ở cả 2 toolchain).",
+    "Chạy script adb emu gsm call/accept/cancel để đóng Task 8.1.1 + test race condition 4.4.2 trên emulator.",
+    "Người dùng tự tạo keystore theo docs/release/RELEASE-SIGNING-SAFECALL.md.",
+    "Xác nhận với stakeholder: ngưỡng prefix 4 ký tự (R5), source=IMPORTED khi import (LLD v1.3).",
+    "Chạy WBS Task 7.7.3 (sanity-check 10.000 entry) — đóng test cho CẢ NFR-4 và NFR-6 cùng lúc.",
+    "Review đối chiếu chi tiết Nghị định 13/2023/NĐ-CP với thiết kế hiện tại (NFR-7 mới có khung áp dụng, chưa review)."
+  ],
+  "sources": [
+    "DASHBOARD-SAFECALL.md", "WEEKLY-SAFECALL.md", "KNOWLEDGE-HEALTH-SAFECALL.md", "MODULEMAP-SAFECALL.md",
+    "RTM-SAFECALL.md", "RISK-SAFECALL.md", "DELEGATION-MAP-SAFECALL.md",
+    "DECISION-LOG-SAFECALL.md", "DOR-SAFECALL.md", "TELEMETRY-SAFECALL.md", "docs/adr/ADR-003-local-only-blocklist.md"
+  ]
+}
+</script>
+
+<script>
+(function () {
+  var STATUS_LABEL = { good: "Tốt", warning: "Cảnh báo", serious: "Nghiêm trọng", critical: "Khẩn cấp", neutral: "N/A" };
+  var RTM_STATUS = {
+    pass:        { label: "Tested-Pass",  status: "good" },
+    partial:     { label: "Code-only",    status: "warning" },
+    "not-started": { label: "Not-started", status: "critical" },
+    na:          { label: "N/A",          status: "neutral" }
+  };
+
+  function el(tag, attrs, children) {
+    var n = document.createElement(tag);
+    for (var k in (attrs || {})) {
+      if (k === "text") n.textContent = attrs[k];
+      else if (k === "html") n.innerHTML = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    (children || []).forEach(function (c) { n.appendChild(c); });
+    return n;
+  }
+
+  function fmtDate(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleString("vi-VN", { dateStyle: "medium", timeStyle: "short" });
+    } catch (e) { return iso; }
+  }
+
+  function svgEl(tag, attrs) {
+    var n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in (attrs || {})) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  function parsePercent(display) {
+    if (typeof display !== "string") return null;
+    var m = display.match(/(-?\d+(?:\.\d+)?)\s*%/);
+    return m ? parseFloat(m[1]) : null;
+  }
+
+  function parseTarget(target) {
+    if (typeof target !== "string") return null;
+    var m = target.match(/([≥≤])\s*(\d+(?:\.\d+)?)\s*%/);
+    return m ? { op: m[1], value: parseFloat(m[2]) } : null;
+  }
+
+  // Gauge geometry: a 180° arc swept over the top, from 9 o'clock (-90°) to 3 o'clock (90°).
+  function polarToCartesian(cx, cy, r, angleDeg) {
+    var rad = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+
+  function describeArc(cx, cy, r, startAngle, endAngle) {
+    var start = polarToCartesian(cx, cy, r, endAngle);
+    var end = polarToCartesian(cx, cy, r, startAngle);
+    var largeArcFlag = (endAngle - startAngle) <= 180 ? "0" : "1";
+    return ["M", start.x, start.y, "A", r, r, 0, largeArcFlag, 0, end.x, end.y].join(" ");
+  }
+
+  function buildGauge(percent, status, target) {
+    var cx = 66, cy = 70, r = 50;
+    var svg = svgEl("svg", { viewBox: "0 0 132 78", class: "gauge-svg" });
+    svg.appendChild(svgEl("path", { d: describeArc(cx, cy, r, -90, 90), class: "gauge-track" }));
+
+    var p = Math.max(0, Math.min(100, percent));
+    if (p > 0) {
+      var sweep = Math.max(1.5, p); // minimum visible sliver so a small-but-nonzero value still shows
+      var endAngle = -90 + (sweep / 100) * 180;
+      svg.appendChild(svgEl("path", { d: describeArc(cx, cy, r, -90, endAngle), class: "gauge-fill status-stroke-" + status }));
+    }
+    if (target) {
+      var ta = -90 + (Math.max(0, Math.min(100, target.value)) / 100) * 180;
+      var inner = polarToCartesian(cx, cy, r - 9, ta);
+      var outer = polarToCartesian(cx, cy, r + 9, ta);
+      svg.appendChild(svgEl("line", { x1: inner.x, y1: inner.y, x2: outer.x, y2: outer.y, class: "gauge-tick" }));
+    }
+    return svg;
+  }
+
+  function renderKpiGrid(containerId, items) {
+    var c = document.getElementById(containerId);
+    c.innerHTML = "";
+    items.forEach(function (k) {
+      var percent = parsePercent(k.display);
+      var tile;
+      if (percent === null) {
+        tile = el("div", { class: "tile" });
+        tile.appendChild(el("div", { class: "label", text: k.label }));
+        var vr = el("div", { class: "value-row" });
+        vr.appendChild(el("span", { class: "status-dot status-" + k.status }));
+        vr.appendChild(el("span", { class: "value", text: k.display }));
+        if (k.target) vr.appendChild(el("span", { class: "target", text: "mục tiêu " + k.target }));
+        tile.appendChild(vr);
+      } else {
+        tile = el("div", { class: "tile gauge" });
+        tile.appendChild(el("div", { class: "label", text: k.label }));
+        var box = el("div", { class: "gauge-box" });
+        box.appendChild(buildGauge(percent, k.status, parseTarget(k.target)));
+        var center = el("div", { class: "gauge-center" });
+        center.appendChild(el("div", { class: "gauge-value", text: k.display }));
+        box.appendChild(center);
+        tile.appendChild(box);
+        var footer = el("div", { class: "gauge-footer" });
+        footer.appendChild(el("span", { class: "status-dot status-" + k.status }));
+        var footerText = STATUS_LABEL[k.status] || "";
+        if (k.target) footerText += (footerText ? " · " : "") + "mục tiêu " + k.target;
+        footer.appendChild(el("span", { text: footerText }));
+        tile.appendChild(footer);
+      }
+      if (k.note) tile.appendChild(el("div", { class: "note", text: k.note }));
+      c.appendChild(tile);
+    });
+  }
+
+  function renderRelease(rs) {
+    document.getElementById("releaseSwatch").style.background = "var(--status-" + rs.level + ")";
+    document.getElementById("releaseLabel").textContent = rs.label;
+  }
+
+  function renderRiskChart(risks) {
+    var max = Math.max.apply(null, risks.map(function (r) { return r.score; }));
+    var bandOf = function (s) { return s >= 15 ? "critical" : s >= 10 ? "serious" : s >= 5 ? "warning" : "good"; };
+    var wrap = el("div");
+    risks.forEach(function (r) {
+      var band = bandOf(r.score);
+      var row = el("div", { class: "bar-row" });
+      row.appendChild(el("div", { class: "rid", text: r.id }));
+      var track = el("div", { class: "bar-track" });
+      var fill = el("div", { class: "bar-fill" });
+      fill.style.width = Math.max(4, (r.score / max) * 100) + "%";
+      fill.style.background = "var(--status-" + band + ")";
+      track.appendChild(fill);
+      row.appendChild(track);
+      row.appendChild(el("div", { class: "bar-score", text: String(r.score) }));
+      wrap.appendChild(row);
+      wrap.appendChild(el("div", { class: "bar-label-outer", text: r.label }));
+    });
+    var host = document.getElementById("riskChart");
+    host.innerHTML = "";
+    host.appendChild(wrap);
+
+    var legend = document.getElementById("riskLegend");
+    legend.innerHTML = "";
+    [["critical", "Khẩn cấp (≥15)"], ["serious", "Nghiêm trọng (10–14)"], ["warning", "Cảnh báo (5–9)"], ["good", "Tốt (<5)"]].forEach(function (p) {
+      var item = el("div", { class: "item" });
+      item.appendChild(el("span", { class: "sw" , style: "background:var(--status-" + p[0] + ")" }));
+      item.appendChild(el("span", { text: p[1] }));
+      legend.appendChild(item);
+    });
+
+    var tbody = document.querySelector("#riskTable tbody");
+    tbody.innerHTML = "";
+    risks.forEach(function (r) {
+      var tr = el("tr");
+      tr.appendChild(el("td", { text: r.id }));
+      tr.appendChild(el("td", { text: r.label }));
+      tr.appendChild(el("td", { class: "num", text: String(r.L) }));
+      tr.appendChild(el("td", { class: "num", text: String(r.I) }));
+      tr.appendChild(el("td", { class: "num", text: String(r.score) }));
+      tr.appendChild(el("td", { text: r.owner }));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderRtm(rows) {
+    var tbody = document.querySelector("#rtmTable tbody");
+    tbody.innerHTML = "";
+    rows.forEach(function (r) {
+      var meta = RTM_STATUS[r.status] || RTM_STATUS.na;
+      var tr = el("tr");
+      tr.appendChild(el("td", { text: r.id }));
+      tr.appendChild(el("td", { text: r.label }));
+      var statusCell = el("td");
+      var badge = el("span", { class: "badge" });
+      badge.appendChild(el("span", { class: "status-dot status-" + meta.status }));
+      badge.appendChild(el("span", { text: meta.label }));
+      statusCell.appendChild(badge);
+      tr.appendChild(statusCell);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderGaps(rows) {
+    var tbody = document.querySelector("#gapsTable tbody");
+    tbody.innerHTML = "";
+    rows.forEach(function (g) {
+      var tr = el("tr");
+      tr.appendChild(el("td", { text: g.wbs }));
+      tr.appendChild(el("td", { text: g.task }));
+      tr.appendChild(el("td", { text: g.actual }));
+      tr.appendChild(el("td", { text: g.shouldBe }));
+      tr.appendChild(el("td", { text: g.reason }));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderDecisions(rows) {
+    var tbody = document.querySelector("#decisionTable tbody");
+    tbody.innerHTML = "";
+    rows.forEach(function (d) {
+      var tr = el("tr");
+      tr.appendChild(el("td", { class: "num", text: "#" + d.n }));
+      tr.appendChild(el("td", { text: d.task }));
+      tr.appendChild(el("td", { text: d.whatWrong }));
+      tr.appendChild(el("td", { text: d.level }));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderSteps(steps) {
+    var ol = document.getElementById("nextSteps");
+    ol.innerHTML = "";
+    steps.forEach(function (s) { ol.appendChild(el("li", { text: s })); });
+  }
+
+  function render(data) {
+    document.getElementById("generatedAt").textContent = "dữ liệu tại: " + fmtDate(data.generatedAt);
+    renderRelease(data.releaseStatus);
+    renderKpiGrid("kpiDashboard", data.dashboardKpis);
+    renderKpiGrid("kpiKnowledge", data.knowledgeHealth);
+    renderRiskChart(data.risks);
+    renderRtm(data.rtm);
+    renderGaps(data.delegationGaps);
+    renderDecisions(data.decisionLog);
+    renderSteps(data.weeklyNextSteps);
+    document.getElementById("sourcesLine").textContent = "Nguồn: " + data.sources.join(" · ");
+  }
+
+  document.getElementById("riskToggle").addEventListener("click", function () {
+    var chart = document.getElementById("riskChart");
+    var table = document.getElementById("riskTable");
+    var showingChart = !chart.classList.contains("hidden");
+    chart.classList.toggle("hidden", showingChart);
+    table.classList.toggle("hidden", !showingChart);
+    this.textContent = showingChart ? "Xem dạng biểu đồ" : "Xem dạng bảng";
+  });
+
+  var fallback = JSON.parse(document.getElementById("fallback-data").textContent);
+  render(fallback);
+
+  var lastRaw = JSON.stringify(fallback);
+  var liveDot = document.getElementById("liveDot");
+  var liveText = document.getElementById("liveText");
+
+  function setLive(ok) {
+    liveDot.className = "dot " + (ok ? "live" : "static");
+    liveText.innerHTML = ok
+      ? "Live — tự làm mới mỗi 5 giây từ <code>data.json</code>"
+      : "Chế độ tĩnh (không fetch được <code>data.json</code>) — xem hướng dẫn chạy server ở cuối trang để bật live.";
+  }
+
+  function poll() {
+    fetch("./data.json", { cache: "no-store" }).then(function (res) {
+      if (!res.ok) throw new Error("http " + res.status);
+      return res.text();
+    }).then(function (text) {
+      setLive(true);
+      if (text !== lastRaw) {
+        lastRaw = text;
+        render(JSON.parse(text));
+      }
+    }).catch(function () {
+      setLive(false);
+    });
+  }
+
+  poll();
+  setInterval(poll, 5000);
+})();
+</script>
+</body>
+</html>

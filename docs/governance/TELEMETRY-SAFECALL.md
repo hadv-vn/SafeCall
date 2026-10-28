@@ -15,3 +15,31 @@
 - **Token & Thời gian:** không có dữ liệu chính xác → để N/A, không bịa số. Nếu cần reconcile, dùng công cụ đo thật hoặc người dùng tự cung cấp
 
 ---
+
+## Phần bổ sung — 2026-10-25 (release-readiness + governance + golden-file test)
+
+| Trường | Giá trị |
+|---|---|
+| **Tool** | Claude Code (Claude Sonnet 5) |
+| **Việc đã làm** | (1) Dựng cơ chế gradle đọc `signingConfigs.release` từ `key.properties` + runbook `RELEASE-SIGNING-SAFECALL.md`; (2) Tạo `WEEKLY-SAFECALL.md`/`DASHBOARD-SAFECALL.md` (EX-05); (3) Golden-file test `PhoneNumberNormalizer` (58 case, đóng Risk R9 một phần) |
+| **Token (est)** | N/A — vẫn không có số liệu token thật |
+| **Thời gian** | N/A — người dùng đã được hỏi trực tiếp (xem hội thoại) nhưng chưa cung cấp số giờ thật; không tự suy diễn |
+| **Số vòng lặp** | 3 — mỗi việc (1)/(2)/(3) ở trên tính là 1 vòng, không phát sinh vòng sửa-lỗi phụ nào trong lượt này |
+| **Rework** | KHÔNG — khác với giai đoạn build Phase 1-8 (rework ở 4/5 vòng), lượt này không phát hiện lỗi nào cần sửa lại. Riêng việc (3): giá trị `expect` trong fixture được tự verify bằng oracle Python độc lập **trước khi báo cáo xong** — 58/58 khớp ngay, không cần sửa |
+| **Human-edit** | 0 — người dùng quyết định ở tầng lựa chọn phạm vi (trả lời câu hỏi rẽ nhánh qua `AskUserQuestion` cho việc (3), tránh đúng kiểu nhập nhằng mà Decision Log khối #5 đã vi phạm trước đó), không tự tay sửa dòng code/tài liệu nào |
+| **Giới hạn đã biết** | Golden-file test (3) **chưa được chạy qua `flutter test`/`gradle test` thật** — môi trường AI không có 2 toolchain này trong PATH. Đây KHÔNG phải "Tested-Pass", chỉ là "đã viết + tự verify logic bằng oracle độc lập" — xem `RTM-SAFECALL.md`/`RISK-SAFECALL.md` đã cập nhật tương ứng |
+
+---
+
+## Phần bổ sung — 2026-10-25 (lần 2 — rebuild + cài emulator + test tay UI "Đầu số" FR-9)
+
+| Trường | Giá trị |
+|---|---|
+| **Tool** | Claude Code (Claude Sonnet 5) |
+| **Việc đã làm** | (1) Rebuild `flutter build apk --debug` sau các thay đổi gradle/signing/test của lượt trước trong cùng ngày — build thành công (`app-debug.apk`, ~162MB); (2) Cài lên emulator đang chạy sẵn (`emulator-5554`, API 34) bằng `adb install -r`, tái sử dụng dữ liệu SQLite cũ (không wipe); (3) Test tay qua `adb shell input`/`screencap`: mở app (vào thẳng `BlocklistScreen` vì onboarding đã hoàn tất từ phiên trước), thêm 1 số EXACT mới (`0987654321`→`+84987654321`, tái xác nhận FR-5), chuyển tab "Đầu số", thêm 1 entry PREFIX mới (`0999`→`+84999*`, **lần đầu test UI này cho FR-9**); (4) Kiểm `adb logcat -d *:E` sau mỗi bước |
+| **Token (est)** | N/A — vẫn không có số liệu token thật |
+| **Thời gian** | N/A — chưa có đồng hồ bấm giờ thật |
+| **Số vòng lặp** | 1 — build, cài, và cả 2 lần test-thêm (EXACT + PREFIX) đều pass ngay lần đầu thao tác đúng; có 1 lần bấm sai toạ độ do quy đổi tỉ lệ ảnh screenshot (900x2000 hiển thị so với 1080x2400 thật) nhưng đây là lỗi thao tác công cụ test (adb tap), không phải lỗi code app — tự phát hiện qua ảnh chụp lại và sửa ngay, không tính là vòng rework của sản phẩm |
+| **Rework** | KHÔNG (ở tầng code/app) — không phát hiện lỗi nào cần sửa code hay cấu hình trong lượt này |
+| **Human-edit** | 0 — người dùng chỉ ra lệnh ("build lại source android", "cài lên emulator và kiểm tra thử"), không tự sửa dòng code/tài liệu nào |
+| **Giới hạn đã biết** | Đây vẫn là test tay qua UI, không phải test tự động. **Chưa** test hành vi chặn cuộc gọi thật theo prefix (cần mô phỏng cuộc gọi qua `adb emu gsm call`, vẫn Not-started — xem `RTM-SAFECALL.md` FR-9/FR-1). **Chưa** test case từ chối đầu số dưới ngưỡng tối thiểu 4 ký tự (AC2) hay cảnh báo trùng contact (AC5) — chỉ test 1 case nhập hợp lệ thành công |

@@ -32,6 +32,9 @@
 | 8.3.1 | UAT (điều phối + fix phản hồi mức blocker) | Human-do | **L1** (Draft) | Người dùng thật quyết định Pass/Fail | **A+** | Cần phản hồi từ NGƯỜI DÙNG THẬT, không phải AI mô phỏng — AI chỉ được tổng hợp/tóm tắt phản hồi, không được tự kết luận "đạt UAT". |
 | 6.5.3 | Vòng test thiết bị thật đa OEM (Samsung/Xiaomi/Oppo, Pixel) | AI-không-nên | **L0** (Observe) | Người cầm thiết bị thật thực hiện, AI chỉ tổng hợp kết quả | — *(không áp dụng Leash — AI không thực thi được)* | Cần thiết bị vật lý thật đa hãng — nằm ngoài khả năng AI hoàn toàn, không phải vấn đề mức ủy quyền mà là giới hạn năng lực thực thi. |
 | — | Release / publish lên Play Store (ngoài WBS, nhưng là bước tất yếu) | Human-do | **L1** | Người đích thân bấm nút release | **A+** | 🔒 Luật cứng #1 của Operating Model: AI không tự push/merge/release trong MỌI trường hợp, không ngoại lệ. |
+| — | *(Bổ sung 2026-10-25)* Tạo keystore + điền `android/key.properties` (giá trị secret thật) | Human-do | **L1** | Người tự chạy `keytool`, tự nhập mật khẩu | **A+** | 🔒 Luật cứng #2: AI không chạm/tạo/biết secret (R14). AI chỉ chuẩn bị cơ chế gradle đọc file, không tự điền giá trị — xem `docs/release/RELEASE-SIGNING-SAFECALL.md`. |
+| — | *(Bổ sung 2026-10-25)* Cấu hình gradle đọc `signingConfigs.release` từ `key.properties` (`android/app/build.gradle`) | AI-do | L3 | AI tự viết, người đọc lại diff trước khi dùng | **A** | Chỉ là code đọc property file — KHÔNG tự tạo/biết giá trị secret (tách biệt rõ với dòng ngay trên). Sai chỉ gây lỗi build, không rò rỉ gì. |
+| — | *(Bổ sung 2026-10-25)* Golden-file test đối chiếu `PhoneNumberNormalizer` Dart ↔ Kotlin (`test/`, `android/.../src/test/`) — đóng Risk R9 | AI-do | L3 | AI tự viết + tự verify bằng oracle Python độc lập (58/58 khớp); người tự chạy `flutter test`/`gradle test` thật để xác nhận cuối (môi trường AI không có 2 toolchain này) | **A** | Test code không chạm production runtime — sai chỉ làm test đỏ, không ảnh hưởng người dùng thật. Đúng mức A, không cần A+ dù chạm logic dual-implementation (khác 1.3.1/4.1.1 vì đây không phải code production, không tự chạy trên thiết bị thật). |
 
 ## Giải trình bắt buộc (≥1 dòng lý do cho mỗi task ≥ L3)
 
@@ -57,3 +60,21 @@ Playbook bước [6] trước bước [7]/[8]), 2 sự cố ghi trong `DECISION-
 cơ hội được chặn ở cổng người-duyệt-manifest/người-duyệt-schema TRƯỚC khi cài lên thiết bị thật**, thay vì chỉ
 được bắt SAU khi đã crash/hỏng dữ liệu. Bài học áp dụng cho các Phase/Task còn lại (test OEM thật, release):
 Delegation Map phải đi TRƯỚC bước build, không phải sau.
+
+## Sign-off retroactive A+ cho 3 gap ⚠️ (2026-10-25)
+
+Người dùng (vai trò stakeholder/người duyệt) đã tự xem lại bằng chứng kỹ thuật thật cho từng gap — không phải
+duyệt bừa theo mô tả — rồi xác nhận **chấp nhận đóng cả 3 (retroactive)** qua `AskUserQuestion`:
+
+| WBS | Bằng chứng đã xem trước khi duyệt | Quyết định |
+|---|---|---|
+| 1.1.2 | `PermissionsModule.kt` xử lý đủ 3 trạng thái NOT_REQUESTED/DENIED/GRANTED; test FR-7 Tested-Pass; không có incident cụ thể ghi nhận (chỉ flag theo loại rủi ro) | ✅ Đóng retroactive |
+| 1.3.1 | Verify lại code thật 2026-10-25: PRAGMA vẫn đặt đúng trong `onConfigure` ở cả `SafeCallDatabaseHelper.kt` (Kotlin) và `database_provider.dart` (Dart), fix từ Decision Log #4 còn nguyên sau lần bump AGP/Kotlin | ✅ Đóng retroactive |
+| 4.1.1 | Verify lại manifest thật 2026-10-25: `foregroundServiceType="specialUse"` + `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` còn nguyên, fix từ Decision Log #3 không bị mất | ✅ Đóng retroactive |
+
+**Lưu ý quan trọng — đóng ≠ xoá lịch sử:** cả 3 dòng ⚠️ ở bảng Delegation Map phía trên **vẫn giữ nguyên**,
+vì sự thật "Leash thực tế đã chạy ở A trong khi đáng lẽ A+" không đổi — đó là lịch sử, sign-off không viết
+lại lịch sử. Điều thay đổi là: 3 gap này nay có **bằng chứng review thật của người (không phải AI tự chấm)**,
+nên không còn là rủi ro "chưa ai biết/chưa ai xem" — `RISK-SAFECALL.md` R13 cập nhật tương ứng. Quy tắc cho
+Task còn lại (test OEM, release) không đổi: mọi task chạm Layer 0 (xem `MODULEMAP-SAFECALL.md`) vẫn phải tự
+động xét A+ TRƯỚC khi build, không chờ review retroactive như lần này.

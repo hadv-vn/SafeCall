@@ -34,7 +34,7 @@ Blocklist của SafeCall Phase 1 chỉ lưu cục bộ trên thiết bị ngư�
 - Giá trị bảo vệ ban đầu (trước khi người dùng tự tích lũy đủ dữ liệu cá nhân) thấp hơn hẳn so với mô hình cộng đồng.
 - Đây là điểm mở rộng rõ ràng đã được xác định cho một phase sau (community blocklist), hiện chưa thuộc phạm vi Phase 1 — cần quyết định kiến trúc riêng (backend, đồng bộ, chống abuse) khi được triển khai.
 
-## Cập nhật (sau khi bổ sung BLOCK-04 — Export/Import blocklist)
+## Cập nhật 2026-10-21 (sau khi bổ sung BLOCK-04 — Export/Import blocklist)
 
 **Bối cảnh bổ sung:** Sau khi ADR này được Accepted, yêu cầu được bổ sung thêm BLOCK-04 (`docs/requirements/scam-call-blocking.md`, Quyết định đã chốt #8 và Ràng buộc phi chức năng sơ bộ): người dùng có thể export toàn bộ blocklist ra file JSON và chia sẻ qua Android Share Sheet chuẩn (email, Drive, Zalo, Bluetooth, hoặc bất kỳ ứng dụng nào người dùng tự chọn trong Share Sheet); import đọc lại file JSON và merge vào blocklist hiện tại.
 

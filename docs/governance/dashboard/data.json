@@ -1,0 +1,84 @@
+{
+  "project": "SafeCall — Phase 1",
+  "generatedAt": "2026-10-25T19:45:00+07:00",
+  "releaseStatus": { "level": "critical", "label": "KHÔNG release/publish Play Store ở trạng thái hiện tại" },
+  "dashboardKpis": [
+    { "id": "nen", "label": "Nén (Compression)", "display": "N/A", "status": "neutral", "note": "Mẫu số (giờ thật) không có — TELEMETRY ghi N/A, không bịa số.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "rework", "label": "Rework Rate", "display": "44.4%", "status": "warning", "note": "4 vòng rework / 9 vòng lặp quan sát (3 khối Telemetry, tính cả lần 2 — rebuild+test FR-9, 0 rework). Sửa 2026-10-25 (lần 2) — trước đó ghi 50% (4/8) vì chưa tính khối thứ 3.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "humanedit", "label": "Human-edit Rate", "display": "0%", "status": "neutral", "note": "Không có nghĩa AI không sai — người duyệt ở tầng quyết định, không sửa dòng code.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "testcov", "label": "Test Coverage theo FR", "display": "20%", "status": "critical", "note": "2/10 FR ở trạng thái Tested-Pass (FR-5, FR-7). FR-9: luồng thêm entry PREFIX qua UI đã test tay 2026-10-25 nhưng vẫn 'partial' (chặn cuộc gọi thật theo prefix chưa test) — không đổi mẫu số.", "source": "RTM-SAFECALL.md" },
+    { "id": "govgap", "label": "Governance Gap Rate", "display": "17.6%", "status": "warning", "note": "3 gap thật / 17 Task ≥L3 (lịch sử không đổi) — cả 3 đã được người dùng ký duyệt retroactive 2026-10-25 sau khi xem bằng chứng kỹ thuật thật. Không còn là gap 'chưa ai review'.", "source": "DELEGATION-MAP-SAFECALL.md" },
+    { "id": "riskopen", "label": "Risk Open Rate", "display": "100%", "status": "critical", "note": "10/10 rủi ro chính chưa có mitigation xác nhận xong.", "source": "RISK-SAFECALL.md" },
+    { "id": "testcount", "label": "Automated Test Case Count", "display": "58", "status": "good", "note": "Tăng từ 0 (2026-10-25) — golden-file PhoneNumberNormalizer, chưa chạy qua toolchain thật.", "source": "test/fixtures/phone_normalizer_golden.json" }
+  ],
+  "knowledgeHealth": [
+    { "id": "c1", "label": "Traceability Coverage", "display": "94.1%", "target": "≥80%", "status": "good", "note": "16/17 req có Design quyết định + code/test (hoặc kế hoạch test) trong RTM, sau khi stakeholder xác nhận NFR-5/6/7. Chỉ NFR-5 còn không trace (deferred Phase 2, chủ động).", "source": "RTM-SAFECALL.md, SRS v3.1" },
+    { "id": "c2", "label": "Change Coupling", "display": "N/A", "target": "≥70%", "status": "neutral", "note": "Chỉ 3 commit trong repo, phần lớn là 1 khối uncommitted — không có lịch sử change-set nhỏ để tính.", "source": "git log" },
+    { "id": "c3", "label": "Freshness", "display": "100%*", "target": "≥85%", "status": "warning", "note": "Point-in-time (2026-10-25) ngay sau khi sửa 2 KPI stale — chưa có cơ chế tự động giữ fresh.", "source": "đối chiếu tay 8 file governance" },
+    { "id": "c4", "label": "Orphan Rate", "display": "5.6%", "target": "≤15%", "status": "good", "note": "Chỉ còn NFR-5 orphan toàn diện (deferred Phase 2 theo quyết định stakeholder, không phải thiếu sót). NFR-6/7 đã có Design quyết định. Giảm từ 44.4%→22.2%→16.7%→5.6%.", "source": "RTM-SAFECALL.md, MODULEMAP-SAFECALL.md, SRS v3.1" },
+    { "id": "c5", "label": "Review Evidence", "display": "N/A", "target": "≥90%", "status": "neutral", "note": "Không có review-log tách biệt theo artefact; Human-edit=0 toàn bộ.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "c6", "label": "Decision Coverage", "display": "100%", "target": "≥75%", "status": "good", "note": "8/8 — ADR-003 đã phản ánh ngoại lệ Export/Share Sheet từ 2026-10-21; Risk/Weekly từng ghi sai là gap, đã sửa.", "source": "docs/adr/ADR-003-local-only-blocklist.md" },
+    { "id": "c7", "label": "Retrieval Quality", "display": "87.5%", "target": "≥70%", "status": "good", "note": "Spot-check 2 câu × 4 mục — verify file thật qua find; thiếu 1 decision record cho ngưỡng prefix FR-9.", "source": "KNOWLEDGE-HEALTH-SAFECALL.md" }
+  ],
+  "risks": [
+    { "id": "R2",  "label": "Overlay lúc đổ chuông chưa test đa OEM thật", "L": 4, "I": 5, "score": 20, "owner": "QA/PM" },
+    { "id": "R1",  "label": "Độ tin cậy phát hiện cuộc gọi API 29 vs 31+ chưa có test hồi quy", "L": 4, "I": 4, "score": 16, "owner": "Dev lead" },
+    { "id": "R11", "label": "AI viết code \"trước, không verify\" — lỗi chỉ lộ lúc build/test thật", "L": 4, "I": 4, "score": 16, "owner": "Dev lead" },
+    { "id": "R4",  "label": "Race condition prompt sau-cuộc-gọi vs overlay lúc-đổ-chuông chưa test", "L": 3, "I": 4, "score": 12, "owner": "Dev lead" },
+    { "id": "R3",  "label": "TelecomManager.endCall() chưa verify đa OEM thật", "L": 2, "I": 5, "score": 10, "owner": "Dev lead" },
+    { "id": "R6",  "label": "Hiệu năng matching khi blocklist lớn — sanity-check chưa chạy", "L": 2, "I": 5, "score": 10, "owner": "Dev lead" },
+    { "id": "R12", "label": "AI tự suy luận lại pseudocode đã mất thay vì dừng hỏi (hard-stop vi phạm)", "L": 2, "I": 5, "score": 10, "owner": "PM + Dev lead" },
+    { "id": "R5",  "label": "Ngưỡng prefix 4 ký tự chưa xác nhận với stakeholder", "L": 3, "I": 3, "score": 9, "owner": "PM" },
+    { "id": "R7",  "label": "Export dữ liệu bên thứ 3 qua Share Sheet — file không mã hoá (ADR-003 đã ghi nhận)", "L": 3, "I": 3, "score": 9, "owner": "PM" },
+    { "id": "R10", "label": "2 vòng fix phát sinh worst-case cao bị ẩn trong WBS", "L": 3, "I": 3, "score": 9, "owner": "PM" },
+    { "id": "R8",  "label": "Import gián đoạn giữa chừng — test crash chưa chạy", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" },
+    { "id": "R9",  "label": "Lệch normalizer Dart/Kotlin — golden-file viết xong, chưa chạy qua toolchain thật", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" },
+    { "id": "R13", "label": "Rubber-stamping governance — 3 gap cụ thể đã ký duyệt, cơ chế chặn tự động trước build vẫn chưa có", "L": 2, "I": 4, "score": 8, "owner": "PM" },
+    { "id": "R14", "label": "Dữ liệu thiết bị thật có thể dán nhầm vào prompt AI ở vòng test OEM", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" }
+  ],
+  "rtm": [
+    { "id": "FR-1", "label": "Chặn real-time (exact + prefix)", "status": "partial" },
+    { "id": "FR-2", "label": "Phát hiện cuộc gọi kết thúc + hỏi xác nhận", "status": "not-started" },
+    { "id": "FR-3", "label": "Xác nhận \"Có\" → thêm blocklist", "status": "not-started" },
+    { "id": "FR-4", "label": "Xác nhận \"Không\" / bỏ qua", "status": "not-started" },
+    { "id": "FR-5", "label": "Quản lý blocklist thủ công", "status": "pass" },
+    { "id": "FR-6", "label": "Lịch sử cuộc gọi", "status": "not-started" },
+    { "id": "FR-7", "label": "Onboarding và cấp quyền", "status": "pass" },
+    { "id": "FR-8", "label": "Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi", "status": "not-started" },
+    { "id": "FR-9", "label": "Chặn theo đầu số (prefix)", "status": "partial" },
+    { "id": "FR-10", "label": "Export/Import blocklist", "status": "partial" },
+    { "id": "DB", "label": "Cross-cutting — Schema & Database", "status": "pass" },
+    { "id": "NFR-1", "label": "Dữ liệu cá nhân bên thứ ba (xoá khi gỡ app, Export)", "status": "partial" },
+    { "id": "NFR-2", "label": "Minh bạch lý do xin quyền", "status": "pass" },
+    { "id": "NFR-3", "label": "Rủi ro chặn nhầm + hành động không thể hoàn tác", "status": "not-started" },
+    { "id": "NFR-4", "label": "Độ tin cậy phát hiện trạng thái cuộc gọi + hiệu năng", "status": "not-started" },
+    { "id": "NFR-5", "label": "Hiệu năng — deferred sang Phase 2 (quyết định stakeholder)", "status": "na" },
+    { "id": "NFR-6", "label": "Khả năng mở rộng — chốt 10.000 bản ghi/loại", "status": "not-started" },
+    { "id": "NFR-7", "label": "Pháp lý — Nghị định 13/2023/NĐ-CP, chưa review chi tiết", "status": "not-started" }
+  ],
+  "delegationGaps": [
+    { "wbs": "1.1.2", "task": "RoleModule + PermissionsModule (quyền hệ thống Android)", "actual": "A", "shouldBe": "A+", "reason": "Chạm quyền hệ thống — crash SecurityException đã xảy ra ở task tương tự (4.1.1). ✅ Ký duyệt retroactive 2026-10-25." },
+    { "wbs": "1.3.1", "task": "Schema DDL SQLite 2 phía", "actual": "A", "shouldBe": "A+", "reason": "Chạm toàn bộ tầng dữ liệu — lỗi PRAGMA-trong-transaction đã thực sự hỏng mọi màn hình đọc DB. ✅ Ký duyệt retroactive 2026-10-25." },
+    { "wbs": "4.1.1", "task": "CallMonitorService (foreground service)", "actual": "A", "shouldBe": "A+", "reason": "Task gây crash SecurityException thật — minh chứng trực tiếp cho lý do cần A+. ✅ Ký duyệt retroactive 2026-10-25." }
+  ],
+  "decisionLog": [
+    { "n": 1, "task": "Android resource setup", "whatWrong": "Sót file .md trong mipmap-hdpi làm mergeDebugResources fail", "level": "L3 / Leash A" },
+    { "n": 2, "task": "Gradle dependency resolution", "whatWrong": "file_picker 6.1.0 gọi API Flutter embedding đã xoá, compile fail", "level": "L3 / Leash A" },
+    { "n": 3, "task": "Manifest & service init", "whatWrong": "foregroundServiceType=phoneCall cần quyền Dialer — crash SecurityException thật", "level": "L3 nominal, đáng lẽ A+ (gap)" },
+    { "n": 4, "task": "Database init 2 phía", "whatWrong": "PRAGMA journal_mode=WAL trong transaction — SQLite error, hỏng toàn bộ đọc DB", "level": "L3 nominal, đáng lẽ A+ (gap)" },
+    { "n": 5, "task": "LLD review (pseudocode 4 hàm lõi)", "whatWrong": "Tự suy luận lại pseudocode đã mất thay vì DỪNG hỏi — vi phạm hard-stop", "level": "L5 Restricted (vi phạm)" }
+  ],
+  "weeklyNextSteps": [
+    "Chạy flutter test + gradle testDebugUnitTest thật để đóng hẳn R9 (58/58 phải pass ở cả 2 toolchain).",
+    "Chạy script adb emu gsm call/accept/cancel để đóng Task 8.1.1 + test race condition 4.4.2 trên emulator.",
+    "Người dùng tự tạo keystore theo docs/release/RELEASE-SIGNING-SAFECALL.md.",
+    "Xác nhận với stakeholder: ngưỡng prefix 4 ký tự (R5), source=IMPORTED khi import (LLD v1.3).",
+    "Chạy WBS Task 7.7.3 (sanity-check 10.000 entry) — đóng test cho CẢ NFR-4 và NFR-6 cùng lúc.",
+    "Review đối chiếu chi tiết Nghị định 13/2023/NĐ-CP với thiết kế hiện tại (NFR-7 mới có khung áp dụng, chưa review)."
+  ],
+  "sources": [
+    "DASHBOARD-SAFECALL.md", "WEEKLY-SAFECALL.md", "KNOWLEDGE-HEALTH-SAFECALL.md", "MODULEMAP-SAFECALL.md",
+    "RTM-SAFECALL.md", "RISK-SAFECALL.md", "DELEGATION-MAP-SAFECALL.md",
+    "DECISION-LOG-SAFECALL.md", "DOR-SAFECALL.md", "TELEMETRY-SAFECALL.md", "docs/adr/ADR-003-local-only-blocklist.md"
+  ]
+}
