@@ -31,6 +31,9 @@ android {
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
+        // Unit test JVM thuan (khong Android framework) - PhoneNumberNormalizerGoldenTest doi chieu
+        // voi ban Dart, dong Risk R9 (docs/governance/RISK-SAFECALL.md).
+        test.java.srcDirs += "src/test/kotlin"
     }
 
     defaultConfig {
@@ -61,4 +64,10 @@ dependencies {
     // ContextCompat/NotificationCompat/NotificationManagerCompat (PermissionsModule,
     // ScamConfirmationNotifier, PendingPromptRegistry, CallMonitorService - Phase 1/4).
     implementation "androidx.core:core-ktx:1.13.1"
+
+    // Unit test JVM thuan cho src/test/kotlin (PhoneNumberNormalizerGoldenTest).
+    testImplementation "junit:junit:4.13.2"
+    // org.json tu Maven Central (KHONG phai android.jar stub) - chay duoc tren JVM thuan, dung de
+    // doc fixture JSON trong local unit test (khong co Android framework/Robolectric).
+    testImplementation "org.json:json:20231013"
 }

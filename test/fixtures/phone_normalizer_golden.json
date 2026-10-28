@@ -1,0 +1,81 @@
+{
+  "_meta": {
+    "purpose": "Golden-file test doi chieu PhoneNumberNormalizer Dart vs Kotlin - dong Risk R9 (docs/governance/RISK-SAFECALL.md). Dau so sinh ngau nhien nhung THEO DUNG dau so nha mang Viet Nam thuc (sau quy hoach 2018): Viettel 032/096/098, Mobifone 070/090, VinaPhone 081/091, Vietnamobile 092, Gmobile 099, iTelecom 087.",
+    "expected_values_computed_independently": "Gia tri 'expect' tinh tay theo dung quy tac doc trong PhoneNumberNormalizer (trim -> bo [\\s-().] -> nhanh +/00/0 -> kiem tra do dai), KHONG chay thu Dart/Kotlin de lay - tranh vong lap tron (oracle doc lap voi ca 2 implementation).",
+    "canonical_path": "test/fixtures/phone_normalizer_golden.json",
+    "mirrored_path": "android/app/src/test/resources/phone_normalizer_golden.json",
+    "sync_note": "2 file nay PHAI giong tuyet doi noi dung - sua 1 ben thi phai sua ca 2, khong co build step tu dong sync."
+  },
+  "cases": [
+    {"id": "viettel_032_local", "raw": "0321457890", "entryType": "EXACT", "expect": "+84321457890"},
+    {"id": "viettel_032_e164", "raw": "+84321457890", "entryType": "EXACT", "expect": "+84321457890"},
+    {"id": "viettel_032_00intl", "raw": "0084321457890", "entryType": "EXACT", "expect": "+84321457890"},
+    {"id": "viettel_032_punct", "raw": "032-145-7890", "entryType": "EXACT", "expect": "+84321457890"},
+
+    {"id": "viettel_096_local", "raw": "0967788990", "entryType": "EXACT", "expect": "+84967788990"},
+    {"id": "viettel_096_e164", "raw": "+84967788990", "entryType": "EXACT", "expect": "+84967788990"},
+    {"id": "viettel_096_00intl", "raw": "0084967788990", "entryType": "EXACT", "expect": "+84967788990"},
+    {"id": "viettel_096_punct", "raw": "096-778-8990", "entryType": "EXACT", "expect": "+84967788990"},
+
+    {"id": "viettel_098_local", "raw": "0983321456", "entryType": "EXACT", "expect": "+84983321456"},
+    {"id": "viettel_098_e164", "raw": "+84983321456", "entryType": "EXACT", "expect": "+84983321456"},
+    {"id": "viettel_098_00intl", "raw": "0084983321456", "entryType": "EXACT", "expect": "+84983321456"},
+    {"id": "viettel_098_punct", "raw": "098-332-1456", "entryType": "EXACT", "expect": "+84983321456"},
+
+    {"id": "mobifone_070_local", "raw": "0709988771", "entryType": "EXACT", "expect": "+84709988771"},
+    {"id": "mobifone_070_e164", "raw": "+84709988771", "entryType": "EXACT", "expect": "+84709988771"},
+    {"id": "mobifone_070_00intl", "raw": "0084709988771", "entryType": "EXACT", "expect": "+84709988771"},
+    {"id": "mobifone_070_punct", "raw": "070-998-8771", "entryType": "EXACT", "expect": "+84709988771"},
+
+    {"id": "mobifone_090_local", "raw": "0901122334", "entryType": "EXACT", "expect": "+84901122334"},
+    {"id": "mobifone_090_e164", "raw": "+84901122334", "entryType": "EXACT", "expect": "+84901122334"},
+    {"id": "mobifone_090_00intl", "raw": "0084901122334", "entryType": "EXACT", "expect": "+84901122334"},
+    {"id": "mobifone_090_punct", "raw": "090-112-2334", "entryType": "EXACT", "expect": "+84901122334"},
+
+    {"id": "vinaphone_081_local", "raw": "0815566778", "entryType": "EXACT", "expect": "+84815566778"},
+    {"id": "vinaphone_081_e164", "raw": "+84815566778", "entryType": "EXACT", "expect": "+84815566778"},
+    {"id": "vinaphone_081_00intl", "raw": "0084815566778", "entryType": "EXACT", "expect": "+84815566778"},
+    {"id": "vinaphone_081_punct", "raw": "081-556-6778", "entryType": "EXACT", "expect": "+84815566778"},
+
+    {"id": "vinaphone_091_local", "raw": "0912244668", "entryType": "EXACT", "expect": "+84912244668"},
+    {"id": "vinaphone_091_e164", "raw": "+84912244668", "entryType": "EXACT", "expect": "+84912244668"},
+    {"id": "vinaphone_091_00intl", "raw": "0084912244668", "entryType": "EXACT", "expect": "+84912244668"},
+    {"id": "vinaphone_091_punct", "raw": "091-224-4668", "entryType": "EXACT", "expect": "+84912244668"},
+
+    {"id": "vietnamobile_092_local", "raw": "0928811223", "entryType": "EXACT", "expect": "+84928811223"},
+    {"id": "vietnamobile_092_e164", "raw": "+84928811223", "entryType": "EXACT", "expect": "+84928811223"},
+    {"id": "vietnamobile_092_00intl", "raw": "0084928811223", "entryType": "EXACT", "expect": "+84928811223"},
+    {"id": "vietnamobile_092_punct", "raw": "092-881-1223", "entryType": "EXACT", "expect": "+84928811223"},
+
+    {"id": "gmobile_099_local", "raw": "0994455667", "entryType": "EXACT", "expect": "+84994455667"},
+    {"id": "gmobile_099_e164", "raw": "+84994455667", "entryType": "EXACT", "expect": "+84994455667"},
+    {"id": "gmobile_099_00intl", "raw": "0084994455667", "entryType": "EXACT", "expect": "+84994455667"},
+    {"id": "gmobile_099_punct", "raw": "099-445-5667", "entryType": "EXACT", "expect": "+84994455667"},
+
+    {"id": "itel_087_local", "raw": "0877733221", "entryType": "EXACT", "expect": "+84877733221"},
+    {"id": "itel_087_e164", "raw": "+84877733221", "entryType": "EXACT", "expect": "+84877733221"},
+    {"id": "itel_087_00intl", "raw": "0084877733221", "entryType": "EXACT", "expect": "+84877733221"},
+    {"id": "itel_087_punct", "raw": "087-773-3221", "entryType": "EXACT", "expect": "+84877733221"},
+
+    {"id": "prefix_032_boundary_valid", "raw": "032", "entryType": "PREFIX", "expect": "+8432"},
+    {"id": "prefix_090_boundary_valid", "raw": "090", "entryType": "PREFIX", "expect": "+8490"},
+    {"id": "prefix_081_boundary_valid", "raw": "081", "entryType": "PREFIX", "expect": "+8481"},
+    {"id": "prefix_092_boundary_valid", "raw": "092", "entryType": "PREFIX", "expect": "+8492"},
+    {"id": "prefix_099_boundary_valid", "raw": "099", "entryType": "PREFIX", "expect": "+8499"},
+    {"id": "prefix_087_boundary_valid", "raw": "087", "entryType": "PREFIX", "expect": "+8487"},
+
+    {"id": "prefix_032_as_exact_too_short", "raw": "032", "entryType": "EXACT", "expectThrows": true},
+    {"id": "prefix_too_short_09", "raw": "09", "entryType": "PREFIX", "expectThrows": true},
+
+    {"id": "edge_empty_exact", "raw": "", "entryType": "EXACT", "expectThrows": true},
+    {"id": "edge_whitespace_only_prefix", "raw": "   ", "entryType": "PREFIX", "expectThrows": true},
+    {"id": "edge_nondigit_chars_exact", "raw": "090-ABC-4567", "entryType": "EXACT", "expectThrows": true},
+    {"id": "edge_no_leading_marker_letters_exact", "raw": "abc0901234567", "entryType": "EXACT", "expectThrows": true},
+    {"id": "edge_missing_marker_digits_only_exact", "raw": "901234567", "entryType": "EXACT", "expectThrows": true},
+    {"id": "edge_too_long_exact", "raw": "+8490112233445566", "entryType": "EXACT", "expectThrows": true},
+    {"id": "edge_double_zero_empty_exact", "raw": "00", "entryType": "EXACT", "expectThrows": true},
+    {"id": "edge_plus_only_prefix", "raw": "+", "entryType": "PREFIX", "expectThrows": true},
+    {"id": "edge_too_short_digits_exact", "raw": "01234", "entryType": "EXACT", "expectThrows": true},
+    {"id": "edge_zero_only_prefix", "raw": "0", "entryType": "PREFIX", "expectThrows": true}
+  ]
+}
