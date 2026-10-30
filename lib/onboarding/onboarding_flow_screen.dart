@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../permissions/permission_keys.dart';
 import '../permissions/permissions_bridge.dart';
+import '../theme/app_theme.dart';
+import '../theme/widgets.dart';
 import 'onboarding_status.dart';
 import 'permission_step_config.dart';
 
@@ -268,6 +270,16 @@ class _WelcomeView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: const BoxDecoration(
+                  gradient: AppGradients.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.shield, color: AppColors.onAccent, size: 44),
+              ),
+              const SizedBox(height: 24),
               Text(
                 'Chào mừng đến SafeCall',
                 style: Theme.of(context).textTheme.headlineSmall,
@@ -278,9 +290,10 @@ class _WelcomeView extends StatelessWidget {
                 'SafeCall giúp bạn tự động chặn các cuộc gọi lừa đảo và hỏi xác nhận khi có '
                 'số lạ gọi đến.',
                 textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 32),
-              ElevatedButton(onPressed: onStart, child: const Text('Bắt đầu')),
+              GradientButton(onPressed: onStart, child: const Text('Bắt đầu')),
             ],
           ),
         ),
@@ -322,13 +335,13 @@ class _RationaleView extends StatelessWidget {
               const SizedBox(height: 12),
               Text(step.rationale, textAlign: TextAlign.center),
               const SizedBox(height: 32),
-              ElevatedButton(
+              GradientButton(
                 onPressed: requestInFlight ? null : onGrant,
                 child: requestInFlight
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onAccent),
                       )
                     : Text(step.isSettingsRedirect ? 'Mở Cài đặt' : 'Cấp quyền'),
               ),
@@ -373,7 +386,7 @@ class _DeniedMandatoryView extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
+              GradientButton(
                 onPressed: onRetry,
                 child: Text(step.isSettingsRedirect ? 'Mở Cài đặt lại' : 'Thử lại'),
               ),
@@ -426,7 +439,7 @@ class _SummaryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tổng kết quyền')),
+      appBar: const GradientAppBar(title: 'Tổng kết quyền'),
       body: FutureBuilder<OnboardingStatusSnapshot>(
         future: OnboardingStatusSnapshot.load(bridge),
         builder: (context, snapshot) {
@@ -455,7 +468,7 @@ class _SummaryView extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: ElevatedButton(onPressed: onFinish, child: const Text('Hoàn tất')),
+                  child: GradientButton(onPressed: onFinish, child: const Text('Hoàn tất')),
                 ),
               ],
             ),
@@ -477,7 +490,7 @@ class _SummaryRow extends StatelessWidget {
     final statusText = granted ? 'Đã cấp' : 'Chưa cấp';
     return ListTile(
       leading: Icon(granted ? Icons.check_circle : Icons.cancel,
-          color: granted ? Colors.green : Colors.red),
+          color: granted ? AppColors.success : AppColors.danger),
       title: Text(label),
       trailing: Semantics(label: statusText, child: Text(statusText)),
     );

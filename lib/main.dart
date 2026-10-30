@@ -6,6 +6,7 @@ import 'onboarding/onboarding_flow_screen.dart';
 import 'onboarding/onboarding_status.dart';
 import 'onboarding/permission_step_config.dart';
 import 'permissions/permissions_bridge.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(const SafeCallApp());
@@ -20,7 +21,7 @@ class SafeCallApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SafeCall',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
+      theme: AppTheme.solarpunk,
       navigatorKey: navigatorKey,
       home: const RootDecider(),
       // ScamPromptListener dung navigatorKey.currentContext (KHONG phai context cua chinh no) de

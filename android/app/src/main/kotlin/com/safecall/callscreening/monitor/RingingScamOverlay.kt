@@ -1,6 +1,7 @@
 package com.safecall.callscreening.monitor
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.view.Gravity
@@ -41,6 +42,13 @@ class RingingScamOverlay(
     private val context: Context,
     private val windowManager: WindowManager,
 ) {
+    // Mau brand tu AppTheme.solarpunk (lib/theme/app_theme.dart, AppColors - theme "Solarpunk
+    // Futuristic") - dung lam tint nut bam. Nen scrim toi (#E6000000) GIU NGUYEN KHONG DOI theo
+    // tung ban theme (du app theme nay la nen sang) - day van la alert an toan dang hoat dong
+    // (cuoc goi dang do chuong), can do tuong phan/do de doc toi da, khong phu thuoc theme chinh.
+    private val accentDanger = Color.parseColor("#D9480F") // dat nung/terracotta
+    private val accentPrimary = Color.parseColor("#2F9E44") // xanh la
+
     private var rootView: ViewGroupHandle? = null
 
     private class ViewGroupHandle(
@@ -89,10 +97,16 @@ class RingingScamOverlay(
         val yesButton = Button(context).apply {
             text = "Có, đây là lừa đảo"
             minimumHeight = dp(56)
+            backgroundTintList = ColorStateList.valueOf(accentDanger)
+            setTextColor(Color.WHITE)
         }
         val noButton = Button(context).apply {
             text = "Không phải lừa đảo"
             minimumHeight = dp(56)
+            backgroundTintList = ColorStateList.valueOf(accentPrimary)
+            // Xanh la va dat nung o day deu du dam - chu trang tuong phan tot tren ca 2 (khac
+            // ban Cyberpunk truoc do, noi nen cyan qua sang buoc phai doi sang chu den).
+            setTextColor(Color.WHITE)
         }
         val errorBanner = TextView(context).apply {
             setTextColor(Color.RED)
@@ -125,7 +139,11 @@ class RingingScamOverlay(
             setTextColor(Color.WHITE)
             textSize = 16f
         }
-        val understoodButton = Button(context).apply { text = "Đã hiểu" }
+        val understoodButton = Button(context).apply {
+            text = "Đã hiểu"
+            backgroundTintList = ColorStateList.valueOf(accentPrimary)
+            setTextColor(Color.WHITE)
+        }
         val resultGroup = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             visibility = View.GONE

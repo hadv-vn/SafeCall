@@ -4,6 +4,8 @@ import '../call_history/call_history_screen.dart';
 import '../contacts/contacts_bridge.dart';
 import '../onboarding/contacts_banner.dart';
 import '../permissions/permissions_bridge.dart';
+import '../theme/app_theme.dart';
+import '../theme/widgets.dart';
 import 'blocklist_export_import_models.dart';
 import 'blocklist_export_service.dart';
 import 'blocklist_import_service.dart';
@@ -243,8 +245,8 @@ class _BlocklistScreenState extends State<BlocklistScreen> {
   Widget build(BuildContext context) {
     final canExport = _entries.isNotEmpty;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Danh sách chặn'),
+      appBar: GradientAppBar(
+        title: 'Danh sách chặn',
         actions: [
           IconButton(
             icon: _exporting
@@ -304,7 +306,7 @@ class _BlocklistScreenState extends State<BlocklistScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
+                GradientButton(
                   onPressed: _submitting ? null : _onAddPressed,
                   child: const Text('Thêm'),
                 ),
@@ -339,14 +341,14 @@ class _BlocklistScreenState extends State<BlocklistScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.block, size: 48, color: Colors.grey),
+                  Icon(Icons.shield_outlined, size: 48, color: AppColors.primary),
                   SizedBox(height: 12),
                   Text('Chưa có số nào bị chặn'),
                   SizedBox(height: 4),
                   Text(
                     'Nhập số điện thoại hoặc đầu số bạn muốn chặn ở ô phía trên',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -354,27 +356,30 @@ class _BlocklistScreenState extends State<BlocklistScreen> {
           );
         }
         return ListView.builder(
+          padding: const EdgeInsets.only(top: 4, bottom: 8),
           itemCount: _entries.length,
           itemBuilder: (context, index) {
             final entry = _entries[index];
             final isPrefix = entry.entryType == EntryType.prefix;
-            return ListTile(
-              leading: Icon(isPrefix ? Icons.call_split : Icons.phone),
-              title: Row(
-                children: [
-                  Text(isPrefix ? '${entry.normalizedNumber}*' : entry.normalizedNumber),
-                  const SizedBox(width: 8),
-                  Chip(
-                    label: Text(isPrefix ? 'Đầu số' : 'Số cụ thể', style: const TextStyle(fontSize: 11)),
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ],
-              ),
-              subtitle: Text(_sourceLabel(entry.source)),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _onDeletePressed(entry),
+            return Card(
+              child: ListTile(
+                leading: Icon(isPrefix ? Icons.call_split : Icons.phone),
+                title: Row(
+                  children: [
+                    Text(isPrefix ? '${entry.normalizedNumber}*' : entry.normalizedNumber),
+                    const SizedBox(width: 8),
+                    Chip(
+                      label: Text(isPrefix ? 'Đầu số' : 'Số cụ thể', style: const TextStyle(fontSize: 11)),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ],
+                ),
+                subtitle: Text(_sourceLabel(entry.source)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _onDeletePressed(entry),
+                ),
               ),
             );
           },

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../theme/app_theme.dart';
+import '../theme/widgets.dart';
 import 'call_history_models.dart';
 import 'call_history_service.dart';
 
@@ -90,7 +92,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lịch sử cuộc gọi')),
+      appBar: const GradientAppBar(title: 'Lịch sử cuộc gọi'),
       body: _buildBody(),
     );
   }
@@ -115,6 +117,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
         }
         return ListView.builder(
           controller: _scrollController,
+          padding: const EdgeInsets.only(top: 4, bottom: 8),
           itemCount: _entries.length + (_hasMore ? 1 : 0),
           itemBuilder: (context, index) {
             if (index >= _entries.length) {
@@ -142,13 +145,13 @@ class _CallHistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = service.deriveDisplayStatus(entry);
     final (label, color) = switch (status) {
-      CallHistoryDisplayStatus.blockedRealtimeExact => ('Đã chặn — Số cụ thể', Colors.red.shade800),
+      CallHistoryDisplayStatus.blockedRealtimeExact => ('Đã chặn — Số cụ thể', AppColors.danger),
       CallHistoryDisplayStatus.blockedRealtimePrefix =>
-        ('Đã chặn — Đầu số ${entry.matchedPrefixValue}', Colors.red.shade800),
-      CallHistoryDisplayStatus.blockedAtRinging => ('Đã chặn & đã ngắt cuộc gọi', Colors.green.shade800),
-      CallHistoryDisplayStatus.confirmedYes => ('Đã hỏi xác nhận — Có', Colors.red),
-      CallHistoryDisplayStatus.confirmedNo => ('Đã hỏi xác nhận — Không', Colors.green),
-      CallHistoryDisplayStatus.normal => ('Bình thường', Colors.grey),
+        ('Đã chặn — Đầu số ${entry.matchedPrefixValue}', AppColors.danger),
+      CallHistoryDisplayStatus.blockedAtRinging => ('Đã chặn & đã ngắt cuộc gọi', AppColors.success),
+      CallHistoryDisplayStatus.confirmedYes => ('Đã hỏi xác nhận — Có', AppColors.danger),
+      CallHistoryDisplayStatus.confirmedNo => ('Đã hỏi xác nhận — Không', AppColors.success),
+      CallHistoryDisplayStatus.normal => ('Bình thường', AppColors.textSecondary),
     };
     // Badge PHU (UIUX "hiển thị SAU") - doc lap voi badge chinh o tren, ap dung cho CA 4 outcome
     // FR-8 (ke ca 3 outcome khong khop blockedAtRinging - xem ghi chu deriveDisplayStatus).
@@ -159,28 +162,31 @@ class _CallHistoryTile extends StatelessWidget {
 
     return Semantics(
       label: semanticsLabel,
-      child: ListTile(
-        title: Text(entry.rawNumber ?? 'Số không xác định'),
-        subtitle: Text(_timeFormat.format(entry.endedAt)),
-        trailing: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Chip(
-              label: Text(label, style: const TextStyle(fontSize: 12)),
-              backgroundColor: color.withOpacity(0.15),
-              labelStyle: TextStyle(color: color),
-            ),
-            if (ringingBadge != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  ringingBadge,
-                  style: const TextStyle(fontSize: 11, color: Colors.orange),
-                  textAlign: TextAlign.end,
-                ),
+      child: Card(
+        child: ListTile(
+          title: Text(entry.rawNumber ?? 'Số không xác định'),
+          subtitle: Text(_timeFormat.format(entry.endedAt)),
+          trailing: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Chip(
+                label: Text(label, style: const TextStyle(fontSize: 12)),
+                backgroundColor: color.withValues(alpha: 0.18),
+                labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
+                side: BorderSide(color: color.withValues(alpha: 0.5)),
               ),
-          ],
+              if (ringingBadge != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    ringingBadge,
+                    style: const TextStyle(fontSize: 11, color: AppColors.warning),
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
