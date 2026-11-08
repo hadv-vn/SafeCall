@@ -1,0 +1,18 @@
+{
+  "binh_thuong": [
+    { "label": "Số di động bình thường 1", "number": "0912345678" },
+    { "label": "Số di động bình thường 2", "number": "0987654321" }
+  ],
+  "blocklist_mau_exact": [
+    { "label": "Số lừa đảo mẫu 1 (thêm vào Blocklist dạng EXACT trước khi test)", "number": "0901234567" },
+    { "label": "Số lừa đảo mẫu 2 (thêm vào Blocklist dạng EXACT trước khi test)", "number": "0933000111" }
+  ],
+  "dau_so_mau_prefix": [
+    { "label": "Đầu số mẫu để test PREFIX (thêm '0900' vào Blocklist trước khi test)", "number": "0900123456" },
+    { "label": "Đầu số mẫu để test PREFIX (thêm '0999' vào Blocklist trước khi test)", "number": "0999888777" }
+  ],
+  "quoc_te": [
+    { "label": "Số quốc tế mẫu (UK, test cảnh báo số quốc tế)", "number": "00442079460958" },
+    { "label": "Số quốc tế mẫu (US, test cảnh báo số quốc tế)", "number": "0012025550147" }
+  ]
+}
