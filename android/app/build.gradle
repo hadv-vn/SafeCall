@@ -115,4 +115,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:1.2.1"
     androidTestImplementation "androidx.test:runner:1.6.2"
     androidTestImplementation "androidx.test:rules:1.6.1"
+    // TestWorkerBuilder - goi doWork() cua PermissionCheckWorker THUC tren emulator/thiet bi (FR-13),
+    // cung version voi work-runtime-ktx o tren de dam bao tuong thich API noi bo.
+    androidTestImplementation "androidx.work:work-testing:2.9.1"
 }
