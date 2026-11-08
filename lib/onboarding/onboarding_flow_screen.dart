@@ -7,7 +7,16 @@ import '../theme/widgets.dart';
 import 'onboarding_status.dart';
 import 'permission_step_config.dart';
 
-enum _FlowPhase { loading, error, welcome, rationale, settingsPending, deniedMandatory, summary }
+enum _FlowPhase {
+  loading,
+  error,
+  welcome,
+  rationale,
+  settingsPending,
+  deniedMandatory,
+  deniedOptional,
+  summary,
+}
 
 /// Luong Onboarding/Permission gop (UIUX: "OnboardingScreen + PermissionScreen - gộp một
 /// luồng"). Pham vi Phase 1 (1.2.1): Welcome, Rationale (lap lai theo [kOnboardingSteps]),
@@ -45,7 +54,10 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> with Widget
     final startAt = widget.startAtDeniedStepFor;
     if (startAt != null) {
       _currentStepIndex = kOnboardingSteps.indexOf(startAt);
-      _phase = _FlowPhase.deniedMandatory;
+      // FR-13 (LLD v1.4): tap thong bao PERMISSION-CHECK co the dan toi quyen TUY CHON (Danh ba/
+      // ANSWER_PHONE_CALLS) - khac resume-check thuong (CHI xet quyen bat buoc) - UIUX muc 8:
+      // "Denied-optional step", tai dung Rationale, nut phu "Dong" thay "De sau".
+      _phase = startAt.mandatory ? _FlowPhase.deniedMandatory : _FlowPhase.deniedOptional;
     } else {
       _loadInitialStatus();
     }
@@ -168,6 +180,22 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> with Widget
     _advanceToNextStepOrSummary();
   }
 
+  /// FR-13, UIUX muc 8 (Denied-optional, mermaid "SysOptional -> Dong y hoac Tu choi -> Home"):
+  /// KHAC luong tuyen tinh thuong (_onGrantPressed) - ca 2 nhanh (cap duoc hoac khong) deu ve
+  /// Home ngay, KHONG advance sang buoc ke tiep cua chuoi onboarding (khong co y nghia o day, vi
+  /// day la diem vao RIENG tu thong bao, khong phai luong tuyen tinh).
+  Future<void> _onOptionalGrantPressed() async {
+    if (_requestInFlight) return;
+    setState(() => _requestInFlight = true);
+    try {
+      await _requestCurrentStep();
+    } finally {
+      if (mounted) setState(() => _requestInFlight = false);
+    }
+    if (!mounted) return;
+    widget.onComplete();
+  }
+
   void _onContinueAnywayPressed() {
     // AC2: "Tiếp tục, cấp sau" - vao app o trang thai suy giam, khong ep dong app.
     final startedFromResume = widget.startAtDeniedStepFor != null;
@@ -210,6 +238,15 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> with Widget
           step: _currentStep,
           onRetry: _onGrantPressed,
           onContinueAnyway: _onContinueAnywayPressed,
+        );
+      case _FlowPhase.deniedOptional:
+        return _DeniedOptionalView(
+          step: _currentStep,
+          requestInFlight: _requestInFlight,
+          onGrant: _onOptionalGrantPressed,
+          // "Dong" (UIUX muc 8) == chinh xac hanh vi "Tiep tuc, cap sau" da co (ca 2 deu ve Home
+          // ngay khi startAtDeniedStepFor != null, xem _onContinueAnywayPressed).
+          onClose: _onContinueAnywayPressed,
         );
       case _FlowPhase.summary:
         return _SummaryView(bridge: _bridge, onFinish: widget.onComplete);
@@ -381,7 +418,7 @@ class _DeniedMandatoryView extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              Text(
+              const Text(
                 'SafeCall sẽ KHÔNG hoạt động đầy đủ cho tới khi bạn cấp quyền này.',
                 textAlign: TextAlign.center,
               ),
@@ -391,6 +428,61 @@ class _DeniedMandatoryView extends StatelessWidget {
                 child: Text(step.isSettingsRedirect ? 'Mở Cài đặt lại' : 'Thử lại'),
               ),
               TextButton(onPressed: onContinueAnyway, child: const Text('Tiếp tục, cấp sau')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// FR-13, UIUX muc 8 "Denied-optional step" (moi v1.7) - tai dung DUNG noi dung giai thich
+/// (rationale) da co cho quyen do o buoc 2, chi doi nut phu "De sau" -> "Dong" (ve Home, khong
+/// chuyen tiep sang buoc ke cua onboarding tuyen tinh - day la diem vao rieng tu thong bao).
+class _DeniedOptionalView extends StatelessWidget {
+  const _DeniedOptionalView({
+    required this.step,
+    required this.requestInFlight,
+    required this.onGrant,
+    required this.onClose,
+  });
+
+  final PermissionStepConfig step;
+  final bool requestInFlight;
+  final VoidCallback onGrant;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Semantics(
+                header: true,
+                child: Text(
+                  step.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(step.rationale, textAlign: TextAlign.center),
+              const SizedBox(height: 32),
+              GradientButton(
+                onPressed: requestInFlight ? null : onGrant,
+                child: requestInFlight
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onAccent),
+                      )
+                    : const Text('Cấp quyền'),
+              ),
+              TextButton(onPressed: requestInFlight ? null : onClose, child: const Text('Đóng')),
             ],
           ),
         ),

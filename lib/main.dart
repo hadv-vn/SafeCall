@@ -54,6 +54,9 @@ class _RootDeciderState extends State<RootDecider> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // FR-13 (LLD v1.4): uu tien kiem tra stepId TRUOC _runResumeCheck() mandatory-only, ap dung
+    // CA cold start lan warm resume - app co the duoc mo tu thong bao PERMISSION-CHECK ngay tu dau.
+    _checkInitialPermissionStepId();
   }
 
   @override
@@ -69,7 +72,39 @@ class _RootDeciderState extends State<RootDecider> with WidgetsBindingObserver {
     }
   }
 
+  PermissionStepConfig? _findStepById(String stepId) {
+    for (final step in kOnboardingSteps) {
+      if (step.id == stepId) return step;
+    }
+    return null;
+  }
+
+  /// FR-13: tap thong bao PERMISSION-CHECK (bat buoc HOAC tuy chon, khac han resume-check thuong
+  /// CHI xet quyen bat buoc) - dieu huong thang toi dung buoc tuong ung, bo qua resume-check
+  /// mandatory-only neu co stepId hop le.
+  Future<void> _checkInitialPermissionStepId() async {
+    final stepId = await _bridge.getInitialPermissionStepId();
+    if (!mounted || stepId == null) return;
+    final step = _findStepById(stepId);
+    if (step == null) return;
+    setState(() {
+      _onHome = false;
+      _resumeDeniedStep = step;
+    });
+  }
+
   Future<void> _runResumeCheck() async {
+    final stepId = await _bridge.getInitialPermissionStepId();
+    if (!mounted) return;
+    final stepFromNotification = stepId == null ? null : _findStepById(stepId);
+    if (stepFromNotification != null) {
+      setState(() {
+        _onHome = false;
+        _resumeDeniedStep = stepFromNotification;
+      });
+      return;
+    }
+
     final snapshot = await OnboardingStatusSnapshot.load(_bridge);
     final revoked = snapshot.firstRevokedMandatoryStep();
     if (!mounted) return;
