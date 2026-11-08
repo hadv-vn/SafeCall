@@ -3,6 +3,13 @@
 > Theo Build Playbook bước [10]. Nối Requirement (SRS v6.1, FR-1..FR-13) ↔ Design (HLD/LLD/ERD/UIUX) ↔ Code
 > (đường dẫn thật, đã kiểm tồn tại qua Glob trước khi ghi vào bảng) ↔ Test (trạng thái THẬT, không bịa).
 >
+> **Cập nhật 2026-11-08 (lượt 2 — xác nhận thật `flutter test`):** lượt audit trước ghi "flutter analyze/
+> flutter test PASS" cho `settings_models_test.dart` nhưng **không trích được bằng chứng CHẠY thật** (giống
+> cách đã trích XML cho phía gradle) — môi trường lúc đó tưởng không có Flutter. Nay đã verify: Flutter CÓ
+> sẵn tại `D:\flutter`, đã tự chạy `flutter test` trực tiếp — kết quả thật `+64: All tests passed!` (58 case
+> golden-file `PhoneNumberNormalizer` + 6 test `settings_models_test.dart`, 0 fail). Xác nhận đúng claim cũ,
+> và đóng hẳn Risk R9 (xem `RISK-SAFECALL.md`).
+>
 > **Cập nhật 2026-11-08:** bổ sung FR-11/FR-12/FR-13 (thiếu suốt từ 2026-11-06/07 — phát hiện trong audit
 > `KNOWLEDGE-HEALTH-SAFECALL.md` c1/c3, xem file đó mục "Cập nhật 2026-11-08"). Đưa thêm 1 trạng thái Test mới
 > **🟢 Unit-test PASS (mock), thiếu UI** — khác cả 3 trạng thái cũ: cao hơn "Code-only" (có bằng chứng CHẠY
