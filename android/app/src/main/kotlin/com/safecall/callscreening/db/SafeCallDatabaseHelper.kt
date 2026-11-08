@@ -23,9 +23,17 @@ class SafeCallDatabaseHelper(context: Context) :
         // SQLiteOpenHelper cua Android tu boc onCreate() trong 1 transaction - PRAGMA
         // journal_mode/busy_timeout deu KHONG duoc phep (hoac bi am tham bo qua) khi dang trong
         // transaction. PHAI dat o onConfigure() (chay TRUOC moi transaction, moi lan mo connection).
-        db.execSQL("PRAGMA journal_mode = WAL")
+        // "PRAGMA journal_mode = WAL" va "PRAGMA busy_timeout = N" deu LUON tra ve 1 dong ket qua
+        // (gia tri thuc te sau khi set) tren thiet bi da kiem chung (AVD API 34) - execSQL() (chi
+        // danh cho cau lenh KHONG tra du lieu) nem SQLiteException "Queries can be performed
+        // using ... query or rawQuery methods only" o day, MOI LAN - khien onConfigure() throw tu
+        // dau, moi read/write qua BlocklistRepository deu fail-open am tham (ADR fail-open bat
+        // buoc nuot loi nay, khong log) - PHAT HIEN duoc khi test thu cong qua adb emu gsm call,
+        // so chan thu khong bao gio bi chan du blocklist dung. PHAI dung rawQuery() cho ca 2 PRAGMA
+        // nay. "PRAGMA synchronous = NORMAL" KHONG tra dong nao nen execSQL van dung binh thuong.
+        db.rawQuery("PRAGMA journal_mode = WAL", null).use { it.moveToFirst() }
         db.execSQL("PRAGMA synchronous = NORMAL")
-        db.execSQL("PRAGMA busy_timeout = ${SafeCallSchema.PRAGMA_BUSY_TIMEOUT_OTHER_MS}")
+        db.rawQuery("PRAGMA busy_timeout = ${SafeCallSchema.PRAGMA_BUSY_TIMEOUT_OTHER_MS}", null).use { it.moveToFirst() }
         // PRAGMA foreign_keys la PER-CONNECTION - PHAI set lai o moi lan mo (ERD muc "Thiet lap PRAGMA").
         db.setForeignKeyConstraintsEnabled(true)
     }
@@ -63,7 +71,7 @@ class SafeCallDatabaseHelper(context: Context) :
      */
     fun openReadOnlyForScreening(): SQLiteDatabase {
         val db = readableDatabase
-        db.execSQL("PRAGMA busy_timeout = ${SafeCallSchema.PRAGMA_BUSY_TIMEOUT_READ_MS}")
+        db.rawQuery("PRAGMA busy_timeout = ${SafeCallSchema.PRAGMA_BUSY_TIMEOUT_READ_MS}", null).use { it.moveToFirst() }
         return db
     }
 
