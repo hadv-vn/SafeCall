@@ -11,7 +11,7 @@
 | Layer | Module | Trách nhiệm | File chính (Dart / Kotlin) |
 |---|---|---|---|
 | **0 — Gateway** | Platform Bridge | Cầu MethodChannel/EventChannel giữa Dart UI và Kotlin native — mọi module bề mặt đều đi qua đây để chạm hệ điều hành | `android/.../MainActivity.kt`; `lib/permissions/permissions_bridge.dart`, `lib/contacts/contacts_bridge.dart`, `lib/call_events/call_event_bridge.dart`; `android/.../monitor/CallEventStreamHandler.kt` |
-| **0 — Phân quyền** | Permissions & Role | Xin/kiểm 4 runtime permission + vai trò `ROLE_CALL_SCREENING` — **móng của mọi tính năng chặn gọi**, không module nào phía dưới chạy được nếu thiếu | `android/.../PermissionsModule.kt`, `RoleModule.kt`, `PermissionKeys.kt`; `lib/permissions/permission_keys.dart` |
+| **0 — Phân quyền** | Permissions & Role | Xin/kiểm 4 runtime permission + vai trò `ROLE_CALL_SCREENING` — **móng của mọi tính năng chặn gọi**, không module nào phía dưới chạy được nếu thiếu. *(Cập nhật 2026-11-08, FR-13/PERMISSION-CHECK)*: thêm `PermissionStatusChecker` (core-check dùng chung, tách khỏi `PermissionsModule`/`RoleModule` để `PermissionCheckWorker` nền dùng lại) và `PermissionCheckWorker`/`SafeCallApplication` (tác vụ `WorkManager` định kỳ 24h kiểm lại 6 trạng thái quyền, gửi notification nhắc cấp lại nếu bị thu hồi) | `android/.../PermissionsModule.kt`, `RoleModule.kt`, `PermissionKeys.kt`, `PermissionStatusChecker.kt`, `PermissionCheckWorker.kt`; `android/.../SafeCallApplication.kt`; `lib/permissions/permission_keys.dart`, `permissions_bridge.dart` |
 | **0 — Data model** | Database / Schema | SQLite 2 phía (Dart sqflite + Kotlin SQLiteOpenHelper) — bảng `blocklist`, `blocklist_meta`, `call_history`, `pending_prompts`, `schema_migrations` — **nền của mọi dữ liệu**, mọi module bề mặt đọc/viết qua đây | `lib/db/safecall_schema.dart`, `database_provider.dart`; `android/.../db/SafeCallSchema.kt`, `SafeCallDatabaseHelper.kt`, `BlocklistRepository.kt`, `CallHistoryRepository.kt`, `BlocklistReadException.kt`, `BlocklistWriteException.kt` |
 | **0 — Tiện ích dùng chung** | Phone Number Normalization | Chuẩn hoá số điện thoại VN — dùng bởi CẢ Blocklist CRUD, Call Screening, Export/Import; sai ở đây hỏng UNIQUE constraint của toàn hệ thống (xem Risk R9) | `lib/blocklist/phone_number_normalizer.dart`; `android/.../PhoneNumberNormalizer.kt` |
 | **0 — Tiện ích dùng chung** | Call State Observation | Lắng nghe trạng thái cuộc gọi hệ điều hành (2 implementation API 29 vs 31+) — móng cho MỌI tính năng phát hiện cuộc gọi (chặn, hỏi xác nhận, overlay) | `android/.../monitor/CallState.kt`, `CallStateObserver.kt`, `CallStateObserverFactory.kt`, `PhoneStateListenerObserver.kt`, `TelephonyCallbackObserver.kt` |
@@ -23,6 +23,14 @@
 | Bề mặt | Ringing Overlay + End Call | Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi — hành động không thể hoàn tác (FR-8) | `android/.../monitor/RingingScamOverlay.kt`, `RingingEligibility.kt`, `RingingCallNumberHolder.kt`, `CallTerminationOutcome.kt` (mở rộng `CallMonitorService.kt`) |
 | Bề mặt | Call History | Xem lại cuộc gọi gần đây + trạng thái xử lý (FR-6) | `lib/call_history/call_history_screen.dart`, `call_history_service.dart`, `call_history_models.dart` |
 | Bề mặt | Export/Import Blocklist | Export JSON qua Share Sheet, Import merge (FR-10) | `lib/blocklist/blocklist_export_service.dart`, `blocklist_import_service.dart`, `blocklist_export_import_models.dart` |
+| Bề mặt *(mới 2026-11-08)* | Settings / Cấu hình nâng cao | Bật/tắt 4 cờ cấu hình: ưu tiên Danh bạ (FR-11) + 3 chế độ chặn nâng cao số lạ/ẩn danh/quốc tế (FR-12) — ghi trực tiếp vào bảng `blocklist_meta` ở Layer 0 Database | `lib/settings/settings_screen.dart`, `settings_service.dart`, `settings_models.dart`; icon "Cài đặt" trên `BlocklistScreen` AppBar |
+
+> **Lưu ý ranh giới (2026-11-08):** module Settings ở trên là module bề mặt DUY NHẤT ghi trực tiếp vào bảng
+> thuộc Layer 0 Database (`blocklist_meta`) — cùng bảng mà `CallScreeningService` hot-path (module Call
+> Screening) đọc MỖI cuộc gọi. Khác các module bề mặt CRUD khác (ví dụ Blocklist Management ghi bảng
+> `blocklist`, không có pipeline hot-path nào đọc cờ cấu hình kiểu này) — sai giá trị ghi ở đây ảnh hưởng
+> trực tiếp tới quyết định chặn, không chỉ tới hiển thị UI. Xem `DELEGATION-MAP-SAFECALL.md` (bổ sung
+> 2026-11-08) cho đánh giá Leash tương ứng.
 
 ## Scope MVP
 

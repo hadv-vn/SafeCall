@@ -43,3 +43,23 @@
 | **Rework** | KHÔNG (ở tầng code/app) — không phát hiện lỗi nào cần sửa code hay cấu hình trong lượt này |
 | **Human-edit** | 0 — người dùng chỉ ra lệnh ("build lại source android", "cài lên emulator và kiểm tra thử"), không tự sửa dòng code/tài liệu nào |
 | **Giới hạn đã biết** | Đây vẫn là test tay qua UI, không phải test tự động. **Chưa** test hành vi chặn cuộc gọi thật theo prefix (cần mô phỏng cuộc gọi qua `adb emu gsm call`, vẫn Not-started — xem `RTM-SAFECALL.md` FR-9/FR-1). **Chưa** test case từ chối đầu số dưới ngưỡng tối thiểu 4 ký tự (AC2) hay cảnh báo trùng contact (AC5) — chỉ test 1 case nhập hợp lệ thành công |
+
+---
+
+## Phần bổ sung — 2026-11-06→08 (cascade FR-11 Contacts Priority, FR-12 Block-Toggle, FR-13 Permission-Check)
+
+> **Khác biệt với 2 khối trên:** khối này **bị bỏ sót suốt 2 ngày**, chỉ được viết lại retroactive ngày
+> 2026-11-08 sau khi `KNOWLEDGE-HEALTH-SAFECALL.md` (c3 Freshness) chỉ ra `TELEMETRY-SAFECALL.md` không có
+> khối nào phủ đợt việc lớn nhất của dự án tính tới nay (7 commit, hàng nghìn dòng thay đổi). Dữ liệu dưới
+> đây dựng lại từ `git log`/nội dung commit thật — không suy diễn số vòng lặp không có dấu vết trong lịch sử.
+
+| Trường | Giá trị |
+|---|---|
+| **Tool** | Claude Code (Claude Sonnet 5) |
+| **Việc đã làm** | 7 commit code+docs (`2efcc3d` FR-11/FR-12 pipeline+test; `4fe7e62` fix fail-open PRAGMA/rawQuery; `79daea2` FR-13 backend Android; `7eefd83` FR-13 Flutter notification-tap; `78691bd` Settings UI FR-11/FR-12; `53fcd9c` audit governance lần 1; `ff7a7e0` audit governance lần 2 + tự chạy `flutter test` thật) + 1 lượt PM review tay `RISK-SAFECALL.md`/`estimate.md`/`WBS-SafeCall-Phase1.md` (2026-11-06, ghi ở `RISK-SAFECALL.md` mục "Log self-review/approve", không lặp lại chi tiết ở đây) |
+| **Token (est)** | N/A — vẫn không có số liệu token thật |
+| **Thời gian** | N/A — vẫn không có đồng hồ bấm giờ thật cho bất kỳ phiên nào trong cascade này |
+| **Số vòng lặp** | **Tối thiểu 1 vòng rework CODE rõ ràng** (`4fe7e62` — xem Decision Log khối #6: lỗi fail-open PRAGMA/execSQL được viết từ 2026-10-23, phát hiện+sửa 2026-11-08 khi lần đầu mô phỏng cuộc gọi thật qua `adb emu gsm call`) + **2 vòng audit governance riêng** (`53fcd9c`, `ff7a7e0` — không phải rework code, mà là cập nhật tài liệu theo phát hiện audit, bản thân `ff7a7e0` phát hiện chính 2 file vừa sửa ở `53fcd9c` đã lại stale). **Không biết chắc** có bao nhiêu vòng thử-sai nhỏ KHÔNG lộ ra qua `git log` (ví dụ thử sai rồi sửa trước khi commit) — chỉ đếm được sự kiện có dấu vết commit/message rõ ràng, không suy diễn thêm |
+| **Rework** | CÓ, ít nhất 1 lần (`4fe7e62`, xem trên) — và là rework **nghiêm trọng nhất** trong toàn bộ lịch sử Decision Log tính tới nay: vô hiệu hoá hoàn toàn tính năng chặn cuộc gọi lõi trong ~2 tuần mà không bị phát hiện qua build/test tay UI thông thường |
+| **Human-edit** | 0 cho CODE sản phẩm (Dart/Kotlin) trong cascade FR-11/12/13 — tất cả 5 commit code đều do AI viết+tự verify qua build/test tự động. Human-edit TÀI LIỆU (không phải code) đã có, ghi riêng ở `RISK-SAFECALL.md` mục "Log self-review/approve" ngày 2026-11-06 — không tính trùng vào đây vì khác loại (xem `DASHBOARD-SAFECALL.md` KPI #3) |
+| **Giới hạn đã biết** | (1) Khối này viết RETROACTIVE sau khi đã bị phát hiện thiếu — không phải ghi theo thời gian thực, nên có thể bỏ sót chi tiết không còn dấu vết trong `git log`/commit message. (2) Toàn bộ 3 FR mới (FR-11/12/13) + Settings UI vẫn chỉ ở mức unit-test (mock) PASS qua `gradle testDebugUnitTest`/`flutter test` — CHƯA ai verify tay qua emulator thật (gạt switch, trigger `WorkManager` thật) — xem `RTM-SAFECALL.md`. (3) Phát hiện khi viết khối này: **2 phiên AI/Claude Code khác nhau đã chỉnh cùng file governance trên cùng working directory gần như đồng thời** (`53fcd9c` rồi `ff7a7e0` cách nhau ~1 giờ cùng ngày) — rủi ro xung đột/ghi đè nếu tiếp diễn, chưa có cơ chế khoá/điều phối nào giữa các phiên |
