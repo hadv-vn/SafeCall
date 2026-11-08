@@ -34,7 +34,13 @@ class CallLogNumberResolver(private val context: Context) {
                 ),
                 null,
                 null,
-                "${CallLog.Calls.DATE} DESC LIMIT 1",
+                // KHONG duoc nhet "LIMIT 1" vao sortOrder - CallLogProvider (qua
+                // SQLiteQueryBuilder.validateSortOrder) tu choi token la bang
+                // IllegalArgumentException("Invalid token LIMIT") tren API 34 (xac nhan that qua
+                // test tay, FR-2/3/4, 2026-11-09) - KHIEN MOI LAN GOI deu throw, khong phai race
+                // hiem. ORDER BY DATE DESC la du de ban ghi moi nhat nam o dong dau tien;
+                // cursor.moveToFirst() + return ngay ben duoi da tu gioi han chi doc 1 dong.
+                "${CallLog.Calls.DATE} DESC",
             )
             cursor?.use {
                 if (!it.moveToFirst()) return null

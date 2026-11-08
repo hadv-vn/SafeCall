@@ -1,15 +1,28 @@
 package com.safecall.callscreening.monitor
 
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
+import java.util.concurrent.Executor
 
 /** Cai dat cho API 31+ (`Build.VERSION_CODES.S`) - `PhoneStateListener` bi deprecated hoan toan tu day. */
 @RequiresApi(Build.VERSION_CODES.S)
 class TelephonyCallbackObserver(private val telephonyManager: TelephonyManager) : CallStateObserver {
 
     private var callback: TelephonyCallback? = null
+
+    // PHAI la main-thread executor (khong phai executor dong bo chay truc tiep tren Binder pool
+    // thread) - xac nhan BUG THAT qua test tay (RingingScamOverlay.show() goi WindowManager.addView()
+    // trong onCallStateChanged(), nem RuntimeException "Can't create handler inside thread ...
+    // that has not called Looper.prepare()" khi executor chay tren Binder thread). Exception nay
+    // khien onRawCallStateChanged() thoat giua chung TRUOC khi cap nhat lastState, lam
+    // handleCallEnded() khong bao gio chay khi cuoc goi ket thuc - dung bug "mat call_history" da
+    // ghi trong Decision Log khoi #7. PhoneStateListenerObserver (API 29-30) khong bi loi nay vi
+    // `telephonyManager.listen()` tu dung Handler cua thread goi register() (main thread).
+    private val mainThreadExecutor: Executor = Executor { command -> Handler(Looper.getMainLooper()).post(command) }
 
     override fun register(onStateChanged: (CallState) -> Unit) {
         val listener = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
@@ -18,10 +31,7 @@ class TelephonyCallbackObserver(private val telephonyManager: TelephonyManager) 
             }
         }
         callback = listener
-        telephonyManager.registerTelephonyCallback(
-            { command -> command.run() }, // Executor dong bo - xu ly tren thread goi lai cua he thong, khong dua len UI thread.
-            listener,
-        )
+        telephonyManager.registerTelephonyCallback(mainThreadExecutor, listener)
     }
 
     override fun unregister() {

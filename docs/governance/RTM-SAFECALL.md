@@ -49,19 +49,19 @@
 
 | Design | Code | Test |
 |---|---|---|
-| HLD Phase 4; LLD **pseudocode E1 gốc đã MẤT** (xem Phụ lục 8.4.1 LLD — logic tái dựng từ SRS/ERD, không phải chép nguyên bản ý định gốc); ERD bảng `call_history`, `pending_prompts` | `android/.../callscreening/monitor/CallMonitorService.kt`, `PromptEligibilityEvaluator.kt`, `PromptEligibility.kt`, `ScamConfirmationNotifier.kt`, `ScamConfirmationReceiver.kt`, `PendingPromptRegistry.kt`, `CallEventStreamHandler.kt`; Dart: `lib/call_events/call_event_bridge.dart`, `lib/call_events/scam_confirmation_dialog.dart` | ⬜ **Not-started** — cần trạng thái cuộc gọi thật (kết nối rồi kết thúc) để kích hoạt; chưa mô phỏng. |
+| HLD Phase 4; LLD **pseudocode E1 gốc đã MẤT** (xem Phụ lục 8.4.1 LLD — logic tái dựng từ SRS/ERD, không phải chép nguyên bản ý định gốc); ERD bảng `call_history`, `pending_prompts` | `android/.../callscreening/monitor/CallMonitorService.kt`, `PromptEligibilityEvaluator.kt`, `PromptEligibility.kt`, `ScamConfirmationNotifier.kt`, `ScamConfirmationReceiver.kt`, `PendingPromptRegistry.kt`, `CallEventStreamHandler.kt`; Dart: `lib/call_events/call_event_bridge.dart`, `lib/call_events/scam_confirmation_dialog.dart` | ✅ **Tested-Pass** *(nâng từ ⬜ Not-started, 2026-11-09)* — verify tay thật trên `emulator-5554` (`adb emu gsm call` → `input keyevent KEYCODE_CALL` trả lời → chờ >3s → `adb emu gsm cancel`): AC1 xác nhận qua `call_history` thật (`was_answered=1`, `duration_seconds=5`, `was_prompted=1`) + notification hệ thống thật (`dumpsys notification`: channel `safecall_scam_confirmation`, 2 action). **Phát hiện và SỬA 2 bug sản phẩm thật trong lượt test này (không phải lỗi môi trường test)**, cả hai khiến `handleCallEnded()` KHÔNG BAO GIỜ chạy được trên thiết bị thật trước đây: (1) `TelephonyCallbackObserver` (API 31+) đăng ký `registerTelephonyCallback` với executor chạy trực tiếp trên Binder thread của hệ thống thay vì main thread — `RingingScamOverlay.show()` gọi `WindowManager.addView()` trên thread đó ném `RuntimeException` ("chưa gọi `Looper.prepare()`"), phá vỡ `lastState` tracking giữa chừng; (2) `CallLogNumberResolver.resolveMostRecentCall()` nhét `"LIMIT 1"` vào tham số `sortOrder` của `ContentResolver.query()` — `CallLogProvider` trên API 34 từ chối bằng `IllegalArgumentException: Invalid token LIMIT`, khiến **100% lần gọi đều throw**, không phải race hiếm. Bug (2) chính là nguyên nhân thật của hiện tượng "mất `call_history`" ghi ở `DECISION-LOG-SAFECALL.md` khối #7 — giả thuyết gốc ở đó ("liên quan `SQLiteLog: database is locked`") **không đúng**, cần sửa lại khi cập nhật Decision Log. Xem code fix: `TelephonyCallbackObserver.kt` (dùng `Handler(Looper.getMainLooper())` làm executor), `CallLogNumberResolver.kt` (bỏ `LIMIT 1` khỏi sortOrder). AC2 (gọi đi/nhỡ không hỏi), AC3 (contact không hỏi), AC4/AC5 (đã blocklist/confirmed-safe không hỏi), AC6 (biên 2.9s/3.0s) **chưa** verify tay riêng — cùng mức "core verified, AC phụ còn thiếu" như FR-1/FR-5/FR-7/FR-9/FR-13. |
 
 ## FR-3 — Xác nhận "Có" → thêm blocklist, SRS AC1-AC2
 
 | Design | Code | Test |
 |---|---|---|
-| LLD **pseudocode E2 gốc đã MẤT** (tái dựng); ERD `blocklist` UNIQUE constraint (chống trùng, AC2) | `PendingPromptRegistry.kt` (`resolvePromptAtomically`, nhánh YES), `BlocklistRepository.kt` (insert), `android/.../callscreening/db/CallHistoryRepository.kt` (`recordUserConfirmation` — **gộp 2 method LLD liệt kê riêng thành 1 UPDATE, xem Phụ lục 8.4.1 LLD**) | ⬜ **Not-started** — phụ thuộc FR-2 chạy được trước. |
+| LLD **pseudocode E2 gốc đã MẤT** (tái dựng); ERD `blocklist` UNIQUE constraint (chống trùng, AC2) | `PendingPromptRegistry.kt` (`resolvePromptAtomically`, nhánh YES), `BlocklistRepository.kt` (insert), `android/.../callscreening/db/CallHistoryRepository.kt` (`recordUserConfirmation` — **gộp 2 method LLD liệt kê riêng thành 1 UPDATE, xem Phụ lục 8.4.1 LLD**) | ✅ **Tested-Pass (AC1)** *(nâng từ ⬜ Not-started, 2026-11-09, cùng lượt verify FR-2 sau khi sửa 2 bug chặn đường)* — tap thông báo mở dialog trong app (kênh "DIALOG", cũng là 1 trong 3 `confirmation_source` hợp lệ theo ERD) → chọn "Có" → xác nhận thật qua `sqlite3`: `blocklist` có dòng mới (`+84933000555`, `entry_type=EXACT`, `source=AUTO_CONFIRMED`); `call_history` ghi đúng `user_response=YES`, `confirmation_source=DIALOG`. AC2 (không trùng dù lỗi đồng bộ) **chưa** verify tay riêng — cần giả lập race, ngoài phạm vi lượt test này. |
 
 ## FR-4 — Xác nhận "Không" / bỏ qua, SRS AC1-AC3
 
 | Design | Code | Test |
 |---|---|---|
-| LLD **pseudocode gốc đã MẤT** (tái dựng) | `PendingPromptRegistry.kt` (nhánh NO + `cancelActivePromptFor` — **không set `resolved_action=NULL` khi `resolved=1`, xem Phụ lục 8.4.1 LLD**), `CallHistoryRepository.kt` | ⬜ **Not-started** — cùng lý do FR-2/FR-3. |
+| LLD **pseudocode gốc đã MẤT** (tái dựng) | `PendingPromptRegistry.kt` (nhánh NO + `cancelActivePromptFor` — **không set `resolved_action=NULL` khi `resolved=1`, xem Phụ lục 8.4.1 LLD**), `CallHistoryRepository.kt` | ✅ **Tested-Pass (AC1)** *(nâng từ ⬜ Not-started, 2026-11-09, cùng lượt verify FR-2/FR-3)* — cùng cơ chế dialog trong app, chọn "Không" cho số `+84933000666` → xác nhận thật: `confirmed_safe` có dòng mới (`+84933000666`); `call_history` ghi đúng `user_response=NO`, `confirmation_source=DIALOG`. AC2 (bỏ qua ≠ "Không", hỏi lại cuộc gọi sau) và AC3 (đổi ý dùng FR-5) **chưa** verify tay riêng. |
 
 ## FR-5 — Quản lý blocklist thủ công, SRS AC1-AC8
 
@@ -187,11 +187,18 @@ nhất), 8.3.1 (UAT) — đều **chưa thực hiện**.
 Theo đúng yêu cầu Build Playbook ("RTM không còn story mồ côi, nếu còn phải NÊU RÕ"), các FR sau có code đầy
 đủ nhưng **0 test thật** (không phải "1 phần" như FR-1/FR-9/FR-10, mà hoàn toàn chưa chạm tới):
 
-- **FR-2, FR-3, FR-4** — toàn bộ luồng prompt-sau-cuộc-gọi, 0 lần verify tay.
 - **FR-6** — màn hình lịch sử cuộc gọi, 0 dữ liệu thật để hiển thị nên 0 lần verify tay.
 - **FR-8** — toàn bộ luồng overlay-lúc-đổ-chuông + `endCall()`, 0 lần verify tay. **Đây là FR có rủi ro cao
   nhất đang mồ côi** (hành động không thể hoàn tác + 2 hàm lõi logic bị tái dựng do mất pseudocode gốc —
   cộng dồn 2 lớp rủi ro chưa kiểm chứng).
+
+**Đóng 2026-11-09:** **FR-2, FR-3, FR-4** hết mồ côi test — cả 3 nay ✅ Tested-Pass (AC1), xem các dòng FR
+tương ứng phía trên. Việc verify tay nhóm này phát hiện và sửa 2 bug sản phẩm thật (`TelephonyCallbackObserver`
+chạy trên Binder thread sai, `CallLogNumberResolver` dùng `LIMIT 1` sai cú pháp `sortOrder`) khiến toàn bộ
+luồng Luồng 2 **không bao giờ chạy được** trên thiết bị thật trước lượt test này — đây cũng là nguyên nhân
+thật của bug "mất `call_history`" ghi ở `DECISION-LOG-SAFECALL.md` khối #7 (giả thuyết gốc ở đó sai, cần đính
+chính). FR-6 giờ CÓ dữ liệu thật để hiển thị (5 bản ghi `call_history` mới) nhưng **chưa ai mở
+`CallHistoryScreen` để verify badge hiển thị đúng** — vẫn giữ mồ côi cho tới khi làm việc đó.
 
 Không có FR nào trong FR-1..FR-10 thiếu CODE hoàn toàn — toàn bộ 10 FR đều có code path tương ứng đã build
 thành công. "Mồ côi" ở đây nghĩa là mồ côi TEST, không phải mồ côi code.
