@@ -47,6 +47,9 @@ android {
         // Unit test JVM thuan (khong Android framework) - PhoneNumberNormalizerGoldenTest doi chieu
         // voi ban Dart, dong Risk R9 (docs/governance/RISK-SAFECALL.md).
         test.java.srcDirs += "src/test/kotlin"
+        // Instrumented test (can device/emulator thuc) - FR-12 AC3 AnonymousCallBlockingInstrumentedTest,
+        // tiem cuoc goi vao Telecom framework thuc qua TestConnectionService (xem file do).
+        androidTest.java.srcDirs += "src/androidTest/kotlin"
     }
 
     defaultConfig {
@@ -58,6 +61,8 @@ android {
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        // Runner chuan AndroidX cho src/androidTest (FR-12 AC3 instrumented test).
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -103,4 +108,11 @@ dependencies {
     // android.jar ma KHONG sua code san pham - MockK dung inline bytecode agent, lam duoc dieu
     // nay ngay ca voi final class/method).
     testImplementation "io.mockk:mockk:1.13.13"
+
+    // Instrumented test (src/androidTest/kotlin, can device/emulator thuc) - FR-12 AC3
+    // AnonymousCallBlockingInstrumentedTest, tiem cuoc goi vao Telecom framework thuc qua
+    // TestConnectionService (ConnectionService MANAGED, khong self-managed).
+    androidTestImplementation "androidx.test.ext:junit:1.2.1"
+    androidTestImplementation "androidx.test:runner:1.6.2"
+    androidTestImplementation "androidx.test:rules:1.6.1"
 }

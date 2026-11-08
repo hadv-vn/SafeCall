@@ -169,5 +169,8 @@ adb emu gsm cancel 0987600008
 ### Edge case AC10/FR-8 — thiếu quyền `ANSWER_PHONE_CALLS`
 `adb shell pm revoke com.safecall android.permission.ANSWER_PHONE_CALLS`, lặp Case 1 → bấm "Có" phải cho outcome `NOT_APPLICABLE_STATE_CHANGED` (không ngắt được cuộc gọi, báo rõ lý do), số vẫn được chặn cho lần sau nhưng cuộc gọi hiện tại tiếp tục đổ chuông. Nhớ `pm grant` lại sau test.
 
-### ⚠️ Hạn chế đã biết
-`adb emu gsm call` không mô phỏng được "số ẩn danh/Private Caller ID" chuẩn — case "Chặn số ẩn danh" (FR-12 AC3) khó test đáng tin cậy trên AVD; ghi nhận là gap test coverage, để lại cho thiết bị thật.
+### ⚠️ Hạn chế đã biết (ĐÃ ĐÓNG — xem instrumented test)
+`adb emu gsm call` (mô phỏng qua modem/RIL giả lập của AVD) không mô phỏng được "số ẩn danh/Private Caller ID" — do đó case "Chặn số ẩn danh" (FR-12 AC3) **không** còn dùng kịch bản thao tác tay này. Đã xác nhận (mã nguồn AOSP `CallsManager.onSuccessfulIncomingCall`) rằng đây không phải giới hạn cứng của thiết bị, chỉ là sai cơ chế mô phỏng: gap đã được đóng bằng instrumented test `AnonymousCallBlockingInstrumentedTest`
+(`android/app/src/androidTest/kotlin/com/safecall/callscreening/AnonymousCallBlockingInstrumentedTest.kt`), tiêm cuộc gọi trực tiếp vào Telecom framework thật qua một `ConnectionService` test harness MANAGED (`TestConnectionService`, không self-managed — self-managed bị Telecom bỏ qua `CallScreeningService` hoàn toàn) với `handlePresentation` = RESTRICTED/UNKNOWN/PAYPHONE, buộc `CallScreeningService` thật của SafeCall xử lý — chạy được trên AVD, không cần thiết bị thật. Chạy bằng `./gradlew :app:connectedDebugAndroidTest` sau khi gán role: `adb shell cmd role add-role-holder android.app.role.CALL_SCREENING com.safecall`.
+
+Phạm vi còn lại thật sự để lại cho thiết bị thật: hành vi hiển thị "Số bị ẩn/Private Caller ID" trên **UI dialer hệ thống** của từng OEM khi carrier mạng thật gửi CLIR — đây là test hiển thị theo carrier/OEM, không phải logic chặn của SafeCall.

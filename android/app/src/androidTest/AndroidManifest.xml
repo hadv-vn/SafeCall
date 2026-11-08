@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      FR-12 AC3 (chan so an danh) - khai bao TestConnectionService (MANAGED ConnectionService,
+      KHONG self-managed, KHONG MANAGE_OWN_CALLS - xem comment chi tiet trong
+      android/app/src/androidTest/kotlin/com/safecall/callscreening/TestConnectionService.kt).
+      Chi dung lam harness cho AnonymousCallBlockingInstrumentedTest: tiem cuoc goi vao Telecom
+      framework THUC tren AVD/thiet bi, buoc Telecom goi dung qua pipeline CallScreeningService
+      cua SafeCall (khong mock, khong qua modem/RIL gia lap).
+
+      "android:name" dung FULLY-QUALIFIED class name vi class TestConnectionService nam trong
+      package "com.safecall.callscreening" (giu nguyen package cua san pham cho gon, KHONG tao
+      package rieng) - khac voi namespace cua chinh androidTest APK (AGP tu sinh mac dinh la
+      "<applicationId>.test", KHONG duoc override qua testNamespace o build.gradle nay) - vi vay
+      KHONG the dung dang rut gon ".TestConnectionService".
+    -->
+    <application>
+        <service
+            android:name="com.safecall.callscreening.TestConnectionService"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>
