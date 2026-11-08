@@ -12,7 +12,7 @@ package com.safecall.callscreening.db
  */
 object SafeCallSchema {
 
-    const val SCHEMA_VERSION = 1
+    const val SCHEMA_VERSION = 2
 
     /** Thiet lap PRAGMA cho connection DOC (ngan - CallScreeningService.onScreenCall). */
     const val PRAGMA_BUSY_TIMEOUT_READ_MS = 1000
@@ -46,9 +46,17 @@ object SafeCallSchema {
         """,
         """
         CREATE TABLE IF NOT EXISTS blocklist_meta (
-            id             INTEGER PRIMARY KEY,
-            prefix_version INTEGER NOT NULL DEFAULT 0,
-            CONSTRAINT ck_blocklist_meta_singleton CHECK (id = 1)
+            id                           INTEGER PRIMARY KEY,
+            prefix_version               INTEGER NOT NULL DEFAULT 0,
+            contacts_priority_enabled    INTEGER NOT NULL DEFAULT 1,
+            block_unknown_enabled        INTEGER NOT NULL DEFAULT 0,
+            block_anonymous_enabled      INTEGER NOT NULL DEFAULT 0,
+            block_international_enabled  INTEGER NOT NULL DEFAULT 0,
+            CONSTRAINT ck_blocklist_meta_singleton CHECK (id = 1),
+            CONSTRAINT ck_blocklist_meta_contacts_priority_enabled CHECK (contacts_priority_enabled IN (0,1)),
+            CONSTRAINT ck_blocklist_meta_block_unknown_enabled CHECK (block_unknown_enabled IN (0,1)),
+            CONSTRAINT ck_blocklist_meta_block_anonymous_enabled CHECK (block_anonymous_enabled IN (0,1)),
+            CONSTRAINT ck_blocklist_meta_block_international_enabled CHECK (block_international_enabled IN (0,1))
         )
         """,
         "INSERT OR IGNORE INTO blocklist_meta (id, prefix_version) VALUES (1, 0)",
@@ -93,6 +101,7 @@ object SafeCallSchema {
             termination_outcome  TEXT,
             matched_entry_type   TEXT,
             matched_prefix_value TEXT,
+            decision_reason      TEXT,
             started_at           INTEGER NOT NULL,
             ended_at             INTEGER NOT NULL,
             duration_seconds     INTEGER NOT NULL,
@@ -138,6 +147,21 @@ object SafeCallSchema {
             ),
             CONSTRAINT ck_call_history_matched_type_requires_blocked CHECK (
                 matched_entry_type IS NULL OR was_blocked = 1
+            ),
+            CONSTRAINT ck_call_history_decision_reason CHECK (
+                decision_reason IS NULL
+                OR decision_reason IN ('CONTACTS_PRIORITY', 'BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')
+            ),
+            CONSTRAINT ck_call_history_decision_reason_excludes_matched_entry_type CHECK (
+                decision_reason IS NULL OR matched_entry_type IS NULL
+            ),
+            CONSTRAINT ck_call_history_decision_reason_contacts_priority CHECK (
+                decision_reason IS NULL OR decision_reason != 'CONTACTS_PRIORITY' OR was_blocked = 0
+            ),
+            CONSTRAINT ck_call_history_decision_reason_block_toggle CHECK (
+                decision_reason IS NULL
+                OR decision_reason NOT IN ('BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')
+                OR was_blocked = 1
             )
         )
         """,
@@ -195,5 +219,54 @@ object SafeCallSchema {
             CONSTRAINT ck_schema_migrations_applied_by CHECK (applied_by IN ('DART', 'NATIVE'))
         )
         """
+    )
+
+    /**
+     * v1 -> v2 (bo sung FR-11/FR-12/FR-9 cot moi, ADR-008 muc "Tieu cuc/trade-off" da canh bao
+     * truoc ma chua ai lam): CREATE_STATEMENTS da duoc sua de them cot moi NHUNG do SCHEMA_VERSION
+     * khong doi, SQLiteOpenHelper se KHONG goi lai onCreate() hay onUpgrade() cho database da ton
+     * tai tu truoc - cac cot moi se KHONG xuat hien, lam getSettingsFlags() nem loi "no such
+     * column" -> fail-open sai cho pipeline PREFIX/BLOCK-TOGGLE (bug thuc te da gap).
+     *
+     * Moi [ColumnMigration] gan voi DUNG 1 cot - [SafeCallDatabaseHelper.onUpgrade] PHAI kiem tra
+     * cot da ton tai chua (qua PRAGMA table_info) truoc khi chay [alterStatement] (khong chay vo
+     * dieu kien). Bat buoc vi mot so DB thuc te (da tao bang onCreate() tu ban build TRUOC KHI
+     * SCHEMA_VERSION duoc bump o day nhung SAU KHI CREATE_STATEMENTS da duoc sua them cot moi) da
+     * co san cac cot nay o version=1 - chay ALTER TABLE ADD COLUMN vo dieu kien se loi "duplicate
+     * column name", lam onUpgrade that bai va dong ca database (crash thuc te da gap tren thiet bi
+     * test, KHONG phai gia dinh).
+     *
+     * Han che da biet: SQLite KHONG cho ALTER TABLE them CONSTRAINT nhieu-cot vao bang da ton tai
+     * (phai CREATE bang moi + copy du lieu neu can dung het rang buoc). Phase 1 chap nhan bo qua 3
+     * CHECK nhieu-cot cua `decision_reason` (ck_call_history_decision_reason_excludes_matched_entry_type/
+     * _contacts_priority/_block_toggle) tren DB da migrate - tinh dung dan van duoc dam bao o tang
+     * ung dung (CallScreeningService chi ghi cac to hop hop le), CHECK don-cot van giu nguyen.
+     */
+    data class ColumnMigration(val table: String, val column: String, val alterStatement: String)
+
+    val MIGRATION_V1_TO_V2: List<ColumnMigration> = listOf(
+        ColumnMigration(
+            "blocklist_meta", "contacts_priority_enabled",
+            "ALTER TABLE blocklist_meta ADD COLUMN contacts_priority_enabled INTEGER NOT NULL DEFAULT 1 CHECK (contacts_priority_enabled IN (0,1))",
+        ),
+        ColumnMigration(
+            "blocklist_meta", "block_unknown_enabled",
+            "ALTER TABLE blocklist_meta ADD COLUMN block_unknown_enabled INTEGER NOT NULL DEFAULT 0 CHECK (block_unknown_enabled IN (0,1))",
+        ),
+        ColumnMigration(
+            "blocklist_meta", "block_anonymous_enabled",
+            "ALTER TABLE blocklist_meta ADD COLUMN block_anonymous_enabled INTEGER NOT NULL DEFAULT 0 CHECK (block_anonymous_enabled IN (0,1))",
+        ),
+        ColumnMigration(
+            "blocklist_meta", "block_international_enabled",
+            "ALTER TABLE blocklist_meta ADD COLUMN block_international_enabled INTEGER NOT NULL DEFAULT 0 CHECK (block_international_enabled IN (0,1))",
+        ),
+        ColumnMigration(
+            "call_history", "decision_reason",
+            """
+            ALTER TABLE call_history ADD COLUMN decision_reason TEXT
+                CHECK (decision_reason IS NULL OR decision_reason IN ('CONTACTS_PRIORITY', 'BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL'))
+            """,
+        ),
     )
 }

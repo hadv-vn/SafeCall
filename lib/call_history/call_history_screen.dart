@@ -12,6 +12,11 @@ import 'call_history_service.dart';
 /// `BLOCKED_REALTIME_EXACT`/`BLOCKED_REALTIME_PREFIX` (Phase 7) va cac badge outcome
 /// `RingingScamOverlay` (Phase 6) CHUA co du lieu de hien thi (`call_history` o giai doan nay
 /// luon co `was_blocked=0` - xem ghi chu call_history_models.dart).
+///
+/// Bo sung v1.3 (FR-11/FR-12): them 3 badge `blockedToggle*` (chan qua BLOCK-TOGGLE) va 1 chip
+/// phu "khong chan vi la contact" (CONTACTS-PRIORITY) - CHUA co du lieu thuc de hien thi o giai
+/// doan nay (pipeline `CallScreeningService` cho FR-11/FR-12 chua duoc trien khai, `decision_reason`
+/// luon null trong du lieu thuc te cho toi khi do), nhung schema/model/logic hien thi da san sang.
 class CallHistoryScreen extends StatefulWidget {
   const CallHistoryScreen({super.key});
 
@@ -148,6 +153,10 @@ class _CallHistoryTile extends StatelessWidget {
       CallHistoryDisplayStatus.blockedRealtimeExact => ('Đã chặn — Số cụ thể', AppColors.danger),
       CallHistoryDisplayStatus.blockedRealtimePrefix =>
         ('Đã chặn — Đầu số ${entry.matchedPrefixValue}', AppColors.danger),
+      CallHistoryDisplayStatus.blockedToggleUnknown => ('Đã chặn — Số lạ', AppColors.danger),
+      CallHistoryDisplayStatus.blockedToggleAnonymous => ('Đã chặn — Số ẩn danh', AppColors.danger),
+      CallHistoryDisplayStatus.blockedToggleInternational =>
+        ('Đã chặn — Số quốc tế', AppColors.danger),
       CallHistoryDisplayStatus.blockedAtRinging => ('Đã chặn & đã ngắt cuộc gọi', AppColors.success),
       CallHistoryDisplayStatus.confirmedYes => ('Đã hỏi xác nhận — Có', AppColors.danger),
       CallHistoryDisplayStatus.confirmedNo => ('Đã hỏi xác nhận — Không', AppColors.success),
@@ -156,9 +165,12 @@ class _CallHistoryTile extends StatelessWidget {
     // Badge PHU (UIUX "hiển thị SAU") - doc lap voi badge chinh o tren, ap dung cho CA 4 outcome
     // FR-8 (ke ca 3 outcome khong khop blockedAtRinging - xem ghi chu deriveDisplayStatus).
     final ringingBadge = service.ringingOutcomeBadgeLabel(entry);
+    // Badge PHU cho FR-11 (CONTACTS-PRIORITY) - xem ghi chu contactsPriorityBadgeLabel.
+    final contactsPriorityBadge = service.contactsPriorityBadgeLabel(entry);
+    final secondaryBadge = ringingBadge ?? contactsPriorityBadge;
     final semanticsLabel = '${entry.rawNumber ?? "Số không xác định"}, '
         '${_timeFormat.format(entry.endedAt)}, trạng thái: $label'
-        '${ringingBadge != null ? ', $ringingBadge' : ''}';
+        '${secondaryBadge != null ? ', $secondaryBadge' : ''}';
 
     return Semantics(
       label: semanticsLabel,
@@ -176,11 +188,11 @@ class _CallHistoryTile extends StatelessWidget {
                 labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
                 side: BorderSide(color: color.withValues(alpha: 0.5)),
               ),
-              if (ringingBadge != null)
+              if (secondaryBadge != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    ringingBadge,
+                    secondaryBadge,
                     style: const TextStyle(fontSize: 11, color: AppColors.warning),
                     textAlign: TextAlign.end,
                   ),

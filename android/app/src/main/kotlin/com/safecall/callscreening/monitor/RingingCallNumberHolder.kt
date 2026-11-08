@@ -1,5 +1,7 @@
 package com.safecall.callscreening.monitor
 
+import com.safecall.callscreening.ScreeningDecisionReason
+
 /**
  * Gap-fill (khong co trong LLD con sot lai): tu API 31+, `TelephonyCallback.CallStateListener`
  * KHONG con tra so dien thoai kem theo trang thai RINGING (khac han `PhoneStateListener` cu, va
@@ -13,13 +15,26 @@ package com.safecall.callscreening.monitor
  * dien thoai tam thoi, khong can ben vung).
  */
 object RingingCallNumberHolder {
-    data class RingingNumber(val rawNumber: String?, val normalizedNumber: String?)
+    /**
+     * [decisionReason] (mo rong v1.4, FR-11): chi co gia tri CONTACTS_PRIORITY - "mang theo" ly
+     * do KHONG chan tu CallScreeningService sang CallMonitorService.handleCallEnded (chi noi THAT
+     * SU ghi call_history cho cuoc goi duoc phep do chuong - xem ghi chu class).
+     */
+    data class RingingNumber(
+        val rawNumber: String?,
+        val normalizedNumber: String?,
+        val decisionReason: ScreeningDecisionReason? = null,
+    )
 
     @Volatile
     private var current: RingingNumber? = null
 
-    fun setRinging(rawNumber: String?, normalizedNumber: String?) {
-        current = RingingNumber(rawNumber, normalizedNumber)
+    fun setRinging(
+        rawNumber: String?,
+        normalizedNumber: String?,
+        decisionReason: ScreeningDecisionReason? = null,
+    ) {
+        current = RingingNumber(rawNumber, normalizedNumber, decisionReason)
     }
 
     fun get(): RingingNumber? = current

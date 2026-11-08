@@ -11,6 +11,17 @@ import com.safecall.callscreening.EntryType
  * (`writableDatabase`, busy_timeout=3000ms) - duoc goi tu `PendingPromptRegistry.resolvePromptAtomically`
  * (native-to-native, khong qua UI thread).
  */
+/**
+ * 4 co cau hinh FR-11/FR-12 doc tu `blocklist_meta` (ADR-008, LLD v1.4) - point-read 1 dong, dung
+ * chung round-trip voi `prefix_version` (khong tang so round-trip tren hot-path).
+ */
+data class SettingsFlags(
+    val contactsPriorityEnabled: Boolean,
+    val blockUnknownEnabled: Boolean,
+    val blockAnonymousEnabled: Boolean,
+    val blockInternationalEnabled: Boolean,
+)
+
 class BlocklistRepository(private val dbHelper: SafeCallDatabaseHelper) {
 
     /** Dung boi onScreenCall - throws [BlocklistReadException] khi loi, KHONG tu fail-open o day
@@ -59,6 +70,39 @@ class BlocklistRepository(private val dbHelper: SafeCallDatabaseHelper) {
             }
         } catch (e: Exception) {
             throw BlocklistReadException("Khong doc duoc blocklist_meta", e)
+        }
+    }
+
+    /**
+     * FR-11/FR-12 (LLD v1.4) - point-read 4 co settings tu `blocklist_meta`, cung co che voi
+     * [getPrefixVersion] (fallback = DEFAULT SRS neu dong chua ton tai - phong ve truoc khi
+     * migration/seed chay, khong nen xay ra trong thuc te vi seed INSERT chay cung luc tao bang).
+     */
+    fun getSettingsFlags(): SettingsFlags {
+        try {
+            val db = dbHelper.openReadOnlyForScreening()
+            db.rawQuery(
+                "SELECT contacts_priority_enabled, block_unknown_enabled, " +
+                    "block_anonymous_enabled, block_international_enabled FROM blocklist_meta WHERE id = 1",
+                null,
+            ).use { cursor ->
+                if (!cursor.moveToFirst()) {
+                    return SettingsFlags(
+                        contactsPriorityEnabled = true,
+                        blockUnknownEnabled = false,
+                        blockAnonymousEnabled = false,
+                        blockInternationalEnabled = false,
+                    )
+                }
+                return SettingsFlags(
+                    contactsPriorityEnabled = cursor.getInt(0) == 1,
+                    blockUnknownEnabled = cursor.getInt(1) == 1,
+                    blockAnonymousEnabled = cursor.getInt(2) == 1,
+                    blockInternationalEnabled = cursor.getInt(3) == 1,
+                )
+            }
+        } catch (e: Exception) {
+            throw BlocklistReadException("Khong doc duoc blocklist_meta (settings flags)", e)
         }
     }
 

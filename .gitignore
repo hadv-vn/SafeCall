@@ -24,3 +24,7 @@ android/gradle/
 
 # Logs from the activity-logging hook (local-only, not source)
 logs/*.jsonl
+logs/*.log
+
+# Python bytecode cache from local dev scripts
+scripts/__pycache__/

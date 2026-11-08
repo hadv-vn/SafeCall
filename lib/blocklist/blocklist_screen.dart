@@ -364,10 +364,14 @@ class _BlocklistScreenState extends State<BlocklistScreen> {
             return Card(
               child: ListTile(
                 leading: Icon(isPrefix ? Icons.call_split : Icons.phone),
-                title: Row(
+                // Wrap (not Row): on narrow screens the type chip drops to the
+                // next line instead of overflowing the ListTile title area.
+                title: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(isPrefix ? '${entry.normalizedNumber}*' : entry.normalizedNumber),
-                    const SizedBox(width: 8),
                     Chip(
                       label: Text(isPrefix ? 'Đầu số' : 'Số cụ thể', style: const TextStyle(fontSize: 11)),
                       visualDensity: VisualDensity.compact,

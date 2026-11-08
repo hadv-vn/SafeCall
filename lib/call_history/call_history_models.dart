@@ -12,6 +12,7 @@ class CallHistoryEntryDto {
     required this.terminationOutcome,
     required this.matchedEntryType,
     required this.matchedPrefixValue,
+    required this.decisionReason,
     required this.startedAt,
     required this.endedAt,
     required this.durationSeconds,
@@ -39,6 +40,12 @@ class CallHistoryEntryDto {
 
   /// Dau so THUC SU da khop (dai nhat) - chi co gia tri khi matchedEntryType='PREFIX' (FR-9).
   final String? matchedPrefixValue;
+
+  /// 'CONTACTS_PRIORITY' / 'BLOCK_TOGGLE_UNKNOWN' / 'BLOCK_TOGGLE_ANONYMOUS' /
+  /// 'BLOCK_TOGGLE_INTERNATIONAL' / null (FR-11/FR-12, v1.3) - loai tru lan nhau voi
+  /// [matchedEntryType] (khong bao gio ca 2 cung non-null). 'CONTACTS_PRIORITY' chi khi
+  /// wasBlocked=false; 3 gia tri BLOCK_TOGGLE_* chi khi wasBlocked=true.
+  final String? decisionReason;
   final DateTime startedAt;
   final DateTime endedAt;
   final int durationSeconds;
@@ -56,6 +63,7 @@ class CallHistoryEntryDto {
       terminationOutcome: row['termination_outcome'] as String?,
       matchedEntryType: row['matched_entry_type'] as String?,
       matchedPrefixValue: row['matched_prefix_value'] as String?,
+      decisionReason: row['decision_reason'] as String?,
       startedAt: DateTime.fromMillisecondsSinceEpoch(row['started_at'] as int),
       endedAt: DateTime.fromMillisecondsSinceEpoch(row['ended_at'] as int),
       durationSeconds: row['duration_seconds'] as int,
@@ -63,7 +71,7 @@ class CallHistoryEntryDto {
   }
 }
 
-/// 5 trang thai hien thi FR-6/AC2 (LLD pseudocode E8, `deriveDisplayStatus`) - `confirmedYes`/
+/// Trang thai hien thi FR-6/AC2 (LLD pseudocode E8, `deriveDisplayStatus`) - `confirmedYes`/
 /// `confirmedNo` la 2 nhanh con cua "CONFIRMED_AFTER_CALL" (gop lam phang thanh 2 gia tri rieng,
 /// nhat quan voi cach Phase 5 da lam, thay vi 1 gia tri + sub-label rieng).
 ///
@@ -73,9 +81,20 @@ class CallHistoryEntryDto {
 /// CHIP THONG TIN RIENG hien thi THEM ben canh badge chinh (xem [ringingOutcomeBadgeLabel] trong
 /// call_history_screen.dart), KHONG thay the/gop vao 1 enum value duy nhat - day la sua lai cach
 /// hieu ban dau cua agent o Phase 6 (da gan badge chinh = ca 4 outcome, SAI so voi E8).
+///
+/// Bo sung v1.3 (FR-11/FR-12, cascade sau khi CallScreeningService co pipeline chan qua
+/// BLOCK-TOGGLE): 3 gia tri `blockedToggle*` moi, suy ra tu `decisionReason` KHI `wasBlocked=true`
+/// VA `matchedEntryType=null` (chan khong qua blocklist exact/prefix). Rieng `CONTACTS_PRIORITY`
+/// (wasBlocked=FALSE, chi la ly do KHONG chan) KHONG phai 1 trong cac gia tri enum nay - cung
+/// nguyen tac "badge phu" nhu [ringingOutcomeBadgeLabel]: 1 cuoc goi binh thuong/da hoi xac nhan
+/// VA duoc contact uu tien bo qua prefix van la `normal`/`confirmedYes`/`confirmedNo` o badge
+/// chinh, chi co them 1 chip phu giai thich ly do (xem [contactsPriorityBadgeLabel]).
 enum CallHistoryDisplayStatus {
   blockedRealtimeExact,
   blockedRealtimePrefix,
+  blockedToggleUnknown,
+  blockedToggleAnonymous,
+  blockedToggleInternational,
   blockedAtRinging,
   confirmedYes,
   confirmedNo,

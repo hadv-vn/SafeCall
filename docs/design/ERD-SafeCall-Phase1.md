@@ -4,11 +4,13 @@
 
 *Cập nhật v1.2 (2026-10-21): theo LLD v1.3, HLD v1.2, SRS v3.0 (FR-9 — chặn theo đầu số/prefix; FR-10 — export/import blocklist; FR-6 mở rộng — phân biệt nguồn chặn exact/prefix trong lịch sử). Thay đổi: (1) bảng `blocklist` thêm cột `entry_type`, đổi UNIQUE thành composite `(normalized_number, entry_type)`, thêm giá trị `source='IMPORTED'`; (2) bảng MỚI `blocklist_meta` (version-counter cho `BlocklistPrefixIndex`, native, cross-process); (3) bảng `call_history` thêm cột `matched_entry_type`/`matched_prefix_value`. Toàn bộ schema FR-1..FR-8 (4 bảng gốc + các cột FR-8) GIỮ NGUYÊN không đổi — chỉ bổ sung thêm. Không có bảng mới cho Export/Import (xác nhận ở tầng ứng dụng, xem mục "Quyết định bổ sung cho FR-9/FR-10").*
 
+*Cập nhật v1.3 (2026-11-07): theo LLD v1.4, HLD v1.3, SRS v6.0 (FR-11 — CONTACTS-PRIORITY; FR-12 — BLOCK-TOGGLE; FR-13 — PERMISSION-CHECK), ADR-008 (`settings-storage-and-permission-check-worker`). Thay đổi: (1) bảng `blocklist_meta` mở rộng thêm 4 cột boolean cấu hình — `contacts_priority_enabled` (DEFAULT 1, FR-11/AC1), `block_unknown_enabled`/`block_anonymous_enabled`/`block_international_enabled` (DEFAULT 0, FR-12/AC1) — vẫn là bảng singleton 1 dòng, KHÔNG đổi bản chất, chỉ thêm cột (ADR-008, cùng lý do cross-process đã dùng cho `prefix_version`); (2) bảng `call_history` thêm cột MỚI `decision_reason` (lý do allow/block KHÔNG xuất phát từ `blocklist` — `CONTACTS_PRIORITY`/`BLOCK_TOGGLE_UNKNOWN`/`BLOCK_TOGGLE_ANONYMOUS`/`BLOCK_TOGGLE_INTERNATIONAL`), kèm CHECK ràng buộc với `was_blocked`/`matched_entry_type` theo đúng invariant LLD v1.4 đã xác nhận; **đồng thời SỬA một ghi chú/giả định cũ** ở CHECK `ck_call_history_matched_type_requires_blocked` (v1.2) dựa trên tiền đề "nguyên nhân chặn DUY NHẤT trong Phase 1 là khớp `blocklist`" — tiền đề này KHÔNG còn đúng từ v1.3 (BLOCK-TOGGLE là nguyên nhân chặn hợp lệ ngoài `blocklist`); CHECK đó bản thân vẫn ĐÚNG (một chiều, không cần sửa), chỉ sửa phần diễn giải. (3) **KHÔNG thêm bảng mới cho FR-13** — xác nhận lại quyết định ADR-008 (notification ID cố định theo loại quyền, tự thay thế qua chính API Notification của Android — không cần bảng DB theo dõi trạng thái "đã thông báo"). Toàn bộ schema FR-1..FR-10 (5 bảng cũ, mọi cột/constraint/index cũ) GIỮ NGUYÊN không đổi — chỉ bổ sung/sửa đúng phạm vi trên.*
+
 | | |
 |---|---|
 | **Trạng thái** | Bản thiết kế/nháp — input cho bước viết migration/DDL thật — **vẫn DRAFT, cần qua `db-schema-reviewer` trước khi dùng làm migration thật** |
-| **Nguồn** | `SRS-SafeCall-Phase1.md` (v3.0, FR-1..FR-10), `HLD-SafeCall-Phase1.md` (v1.2, mục "Luồng chính 1/3/6"), `LLD-SafeCall-Phase1.md` (v1.3, mục "Cấu trúc dữ liệu nội bộ", mục "`CallScreeningService`/`BlocklistPrefixIndex`", mục "`BlocklistExportService`/`BlocklistImportService`", mục "`CallHistoryRepository`/`CallHistoryEntryDto` — mở rộng cho FR-6", mục "Rủi ro kiến trúc... và giải pháp đã chọn"), ADR-005 (`call-termination-mechanism`), `docs/architecture/call-termination-feasibility.md` |
-| **Phạm vi** | Schema SQLite v1 duy nhất, dùng chung bởi `BlocklistService`/`CallHistoryService`/**`BlocklistExportService`/`BlocklistImportService`** (Dart, qua `sqflite`) và `BlocklistRepository`/`CallHistoryRepository`/`PendingPromptRegistry`/**`BlocklistPrefixIndex`** fallback (Kotlin native, đọc/viết trực tiếp). **Bổ sung v1.1**: `CallMonitorService` (native) là writer mới cho các cột FR-8. **Bổ sung v1.2**: `BlocklistExportService`/`BlocklistImportService` (Dart, `lib/`) là writer/reader mới cho FR-10 nhưng tái sử dụng HOÀN TOÀN `BlocklistService` (không truy cập SQLite trực tiếp); `BlocklistPrefixIndex` (native, in-memory) là reader-only của `blocklist`/`blocklist_meta`, không ghi gì. Không có writer/thành phần hoàn toàn mới nào khác tham gia schema. |
+| **Nguồn** | `SRS-SafeCall-Phase1.md` (v3.0, FR-1..FR-10; **v6.0, FR-11/FR-12/FR-13**), `HLD-SafeCall-Phase1.md` (v1.2, mục "Luồng chính 1/3/6"; **v1.3**), `LLD-SafeCall-Phase1.md` (v1.3, mục "Cấu trúc dữ liệu nội bộ", mục "`CallScreeningService`/`BlocklistPrefixIndex`", mục "`BlocklistExportService`/`BlocklistImportService`", mục "`CallHistoryRepository`/`CallHistoryEntryDto` — mở rộng cho FR-6", mục "Rủi ro kiến trúc... và giải pháp đã chọn"; **v1.4, mục "Cấu trúc dữ liệu nội bộ", mục "`CallScreeningService` — pipeline 6 bước đầy đủ"**), ADR-005 (`call-termination-mechanism`), `docs/architecture/call-termination-feasibility.md`, **ADR-008 (`settings-storage-and-permission-check-worker`)** |
+| **Phạm vi** | Schema SQLite v1 duy nhất, dùng chung bởi `BlocklistService`/`CallHistoryService`/**`BlocklistExportService`/`BlocklistImportService`** (Dart, qua `sqflite`) và `BlocklistRepository`/`CallHistoryRepository`/`PendingPromptRegistry`/**`BlocklistPrefixIndex`** fallback (Kotlin native, đọc/viết trực tiếp). **Bổ sung v1.1**: `CallMonitorService` (native) là writer mới cho các cột FR-8. **Bổ sung v1.2**: `BlocklistExportService`/`BlocklistImportService` (Dart, `lib/`) là writer/reader mới cho FR-10 nhưng tái sử dụng HOÀN TOÀN `BlocklistService` (không truy cập SQLite trực tiếp); `BlocklistPrefixIndex` (native, in-memory) là reader-only của `blocklist`/`blocklist_meta`, không ghi gì. **Bổ sung v1.3**: `SettingsService` (Dart, `lib/`, MỚI FR-11/FR-12) là writer MỚI của 4 cờ settings trên `blocklist_meta` (qua `sqflite`, cùng file); `CallScreeningService`/`BlocklistRepository.getSettingsFlags()` (native) là reader MỚI của 4 cờ này (không ghi). `PermissionCheckWorker`/`SafeCallApplication` (native, FR-13) **KHÔNG tham gia schema này** — không đọc/ghi gì (chỉ gọi Android Permission/Notification/WorkManager API thuần, xem ADR-008) — xác nhận không có bảng mới cho FR-13. Không có writer/thành phần hoàn toàn mới nào khác tham gia schema. |
 
 ---
 
@@ -34,6 +36,10 @@ Truy vấn chính cần tối ưu:
 Truy vấn chính MỚI cần tối ưu (v1.2): `BlocklistRepository.isBlockedExact(number)` — point-lookup SQL có index trên `blocklist` (lọc `entry_type='EXACT'`), vẫn trên path ~1500ms. `BlocklistPrefixIndex.ensureFresh`/`getPrefixVersion()` — point-read 1 dòng trên `blocklist_meta`, mỗi lần `onScreenCall` (rẻ, không phải round-trip quét bảng). `BlocklistPrefixIndex.rebuild`/`getAllPrefixValues()` — đọc TOÀN BỘ entry `entry_type='PREFIX'` trên `blocklist`, hiếm (chỉ khi version đổi), nhưng cần tránh quét luôn cả các dòng `EXACT` (số lượng có thể lớn hơn nhiều, đặc biệt sau Import không giới hạn — FR-10/AC11).
 
 Quan hệ: `call_history (1) —— (0..1) pending_prompts` qua `call_record_id` (mỗi cuộc gọi đủ điều kiện FR-2 tạo tối đa một prompt). `blocklist`/`confirmed_safe` **không có FK** tới `call_history`/`pending_prompts` — xem lý do ở mục "Chi tiết từng bảng". `blocklist_meta` là bảng singleton kỹ thuật, không có FK ra/vào bất kỳ bảng nào — liên kết với `blocklist` chỉ ở mức "được cập nhật đồng thời trong cùng transaction khi `blocklist` có thay đổi entry PREFIX" (qua trigger, xem "Chi tiết từng bảng").
+
+**Bổ sung FR-11/FR-12/FR-13 (v1.3)**: FR-11 (CONTACTS-PRIORITY) và FR-12 (BLOCK-TOGGLE) KHÔNG phải entity mới — chỉ là 4 cờ CẤU HÌNH boolean, mở rộng đúng bảng singleton `blocklist_meta` đã có (ADR-008, cùng lý do cross-process đã áp dụng cho `prefix_version` ở FR-9: `CallScreeningService` có thể chạy process riêng với Flutter engine — xem LLD "Ngoài phạm vi LLD này" —, cần một nguồn đọc được từ MỌI process; `SharedPreferences` bị loại đúng vì không đảm bảo điều này, xem ADR-008 "Quyết định 1"). FR-6 mở rộng thêm một lần nữa (sau FR-9): khi một cuộc gọi được PHÉP qua hoặc bị CHẶN vì lý do KHÔNG xuất phát từ `blocklist` (ưu tiên danh bạ đè lên 1 khớp PREFIX, hoặc 1 trong 3 toggle chặn), `call_history` cần ghi nhận lý do đó — cột mới `decision_reason`, tách biệt hoàn toàn khỏi `matched_entry_type` (nguồn gốc `blocklist`). FR-13 (PERMISSION-CHECK) KHÔNG cần entity/bảng mới — `PermissionCheckWorker` chỉ đọc trạng thái quyền qua Android API thuần (`RoleManager`/`checkSelfPermission`/`Settings.canDrawOverlays`/`NotificationManagerCompat`), và dùng notification ID CỐ ĐỊNH theo từng loại quyền để tự thay thế thông báo cũ (idempotent miễn phí từ chính API Notification của Android) — quyết định đã chốt ở ADR-008, **xác nhận lại rõ ở đây: KHÔNG cần bảng DB theo dõi trạng thái "đã thông báo"**, để tránh thiết kế dư thừa ở bước sau (xem mục "Quyết định bổ sung cho FR-11/FR-12/FR-13").
+
+Truy vấn chính MỚI cần tối ưu (v1.3): `BlocklistRepository.getSettingsFlags()` — point-read 1 dòng trên `blocklist_meta` (`WHERE id = 1`), mỗi lần `CallScreeningService.onScreenCall` chạy tới bước cần xét (bước 1 cho `block_anonymous_enabled`, bước 4-5 cho 3 cờ còn lại) — gộp vào ĐÚNG MỘT round-trip đã có sẵn cho `prefix_version` (chỉ `SELECT` thêm 4 cột, không thêm query riêng).
 
 ## Bối cảnh schema hiện có (đã khảo sát)
 
@@ -62,6 +68,7 @@ erDiagram
     text termination_outcome "MOI FR-8 - ket qua endCall()"
     text matched_entry_type "MOI v1.2/FR-6 - EXACT/PREFIX, chi khi was_blocked=1"
     text matched_prefix_value "MOI v1.2/FR-6 - chi khi matched_entry_type=PREFIX"
+    text decision_reason "MOI v1.3/FR-11-FR-12 - CONTACTS_PRIORITY/BLOCK_TOGGLE_*, loai tru matched_entry_type"
     integer started_at
     integer ended_at
     integer duration_seconds
@@ -92,6 +99,10 @@ erDiagram
   blocklist_meta {
     integer id PK "luon = 1, bang singleton"
     integer prefix_version "MOI v1.2/FR-9 - tang boi trigger khi blocklist co thay doi entry PREFIX"
+    integer contacts_priority_enabled "MOI v1.3/FR-11 - 0/1, DEFAULT 1"
+    integer block_unknown_enabled "MOI v1.3/FR-12 - 0/1, DEFAULT 0"
+    integer block_anonymous_enabled "MOI v1.3/FR-12 - 0/1, DEFAULT 0"
+    integer block_international_enabled "MOI v1.3/FR-12 - 0/1, DEFAULT 0"
   }
 
   confirmed_safe {
@@ -102,6 +113,8 @@ erDiagram
 ```
 
 **Ghi chú `blocklist_meta` (v1.2)**: không vẽ FK giữa `blocklist_meta` và `blocklist` — liên kết là qua TRIGGER (cùng transaction khi `blocklist` có thay đổi entry `PREFIX`), không phải ràng buộc tham chiếu khóa ngoại theo dòng dữ liệu (bảng chỉ có đúng 1 dòng, không tham chiếu tới dòng `blocklist` cụ thể nào). Xem "Chi tiết từng bảng" để biết lý do thiết kế singleton + trigger.
+
+**Ghi chú `blocklist_meta` (v1.3)**: 4 cột cấu hình mới (`contacts_priority_enabled`/`block_unknown_enabled`/`block_anonymous_enabled`/`block_international_enabled`) **không liên quan gì tới `prefix_version`/trigger** — chỉ dùng chung bảng vì cùng lý do kỹ thuật (cross-process, singleton, đọc nhanh bởi `CallScreeningService`), không có trigger/FK nào mới gắn với chúng. Không vẽ quan hệ nào mới trên diagram cho 4 cột này.
 
 **Ghi chú về việc không vẽ FK giữa `blocklist`/`confirmed_safe` và `call_history`/`pending_prompts`**: liên kết giữa chúng chỉ ở mức nghiệp vụ (cùng giá trị `normalized_number`, tra cứu runtime bởi `evaluatePromptEligibility`/`resolvePromptAtomically`), KHÔNG phải ràng buộc toàn vẹn dữ liệu (không FK constraint thật) — lý do tách bảng và không ràng buộc chéo được giải thích ở mục dưới.
 
@@ -143,21 +156,35 @@ erDiagram
 - Index đề xuất (giữ nguyên, không đổi ở v1.2): `idx_blocklist_added_at (added_at DESC)` — phục vụ `BlocklistScreen` liệt kê theo thời gian thêm gần nhất (FR-5/AC1), nay liệt kê CẢ HAI loại entry cùng lúc (FR-9/AC6).
 - Không FK nào trỏ vào/ra bảng này (ngoại trừ liên kết qua TRIGGER tới `blocklist_meta`, không phải FK — xem bảng `blocklist_meta` dưới).
 
-### `blocklist_meta` (MỚI — v1.2/FR-9, thuần kỹ thuật)
+### `blocklist_meta` (MỚI — v1.2/FR-9, thuần kỹ thuật; **mở rộng v1.3/FR-11/FR-12 — thêm 4 cờ cấu hình settings, ADR-008**)
 
 **Quyết định thiết kế: bảng singleton 1 dòng chuyên biệt cho `prefix_version`, KHÔNG dùng mô hình key-value tổng quát** (dù LLD tự phác ý tưởng `blocklist_meta(key='prefix_version', value=N)`). Lý do:
 1. **Chỉ có đúng MỘT giá trị cấu hình cần lưu ở Phase 1** (`prefix_version`, dùng bởi `BlocklistPrefixIndex.ensureFresh`) — một bảng key-value tổng quát (cột `key TEXT`, `value TEXT/INTEGER`) chỉ hợp lý khi có NHIỀU key khác nhau cần tra theo tên; với 1 giá trị duy nhất, thiết kế đó thêm một lớp gián tiếp (parse `key`, ép kiểu `value`) không mang lại lợi ích, chỉ tăng rủi ro lỗi (sai chính tả `key`, nhầm kiểu dữ liệu `value` lưu dạng TEXT cho một số nguyên dùng để so sánh `!=`).
 2. **Khớp đúng cách dùng đã chốt ở LLD**: `getPrefixVersion(): Long` chỉ cần đọc 1 số nguyên — `SELECT prefix_version FROM blocklist_meta WHERE id = 1` đơn giản hơn `SELECT value FROM blocklist_meta WHERE key = 'prefix_version'` (tương đương về hiệu năng, nhưng cột có kiểu `INTEGER` tường minh an toàn hơn `value TEXT` ép kiểu).
 3. **Không mất khả năng mở rộng về sau**: nếu Phase sau cần thêm key cấu hình khác, tạo CỘT MỚI trên CHÍNH bảng này (vẫn 1 dòng, thêm cột) hoặc tạo bảng key-value riêng lúc đó — không cần thiết kế tổng quát hóa sớm (YAGNI) khi hiện tại chỉ có 1 nhu cầu cụ thể.
 
+**Mở rộng v1.3 (FR-11/FR-12, ADR-008)**: đúng như dự đoán ở điểm 3 trên — Phase 1 (vẫn trong năm) đã có "key cấu hình khác" thật, áp dụng chính xác bằng cách THÊM CỘT MỚI trên bảng này (không tạo bảng key-value riêng, không tạo bảng mới). 4 cờ mới (`contacts_priority_enabled`/`block_unknown_enabled`/`block_anonymous_enabled`/`block_international_enabled`) **không liên quan về nghiệp vụ** tới `prefix_version` (khác domain: cấu hình hành vi chặn do người dùng chọn ở `SettingsScreen`, không phải version-counter cho prefix-index) — chỉ dùng CHUNG bảng vì ĐÚNG CÙNG LÝ DO KỸ THUẬT đã chọn `blocklist_meta` làm giải pháp cross-process cho `prefix_version` ở FR-9 (ADR-008 "Quyết định 1": `CallScreeningService` có thể chạy process riêng với Flutter engine, cần SQLite — nguồn đọc chung mọi process — thay vì `SharedPreferences`). **Trade-off đã được ADR-008 tự ghi nhận (chấp nhận cho Phase 1, YAGNI)**: bảng này dần trở thành "bảng cấu hình chung" hơn là chuyên biệt đúng tên gọi ban đầu — nếu số lượng cờ cấu hình tiếp tục tăng ở phase sau, cân nhắc tách một bảng `app_settings` riêng lúc đó, không cần làm sớm bây giờ.
+
 | Cột | Kiểu | Null? | Default | Ghi chú |
 |---|---|---|---|---|
 | id | INTEGER | NOT NULL | | PRIMARY KEY, luôn = 1 (ép bằng CHECK) — bảng CHỈ CÓ 1 dòng, không dùng AUTOINCREMENT (không có khái niệm "dòng thứ mấy") |
 | prefix_version | INTEGER | NOT NULL | 0 | Counter — tăng mỗi khi có INSERT/DELETE/MERGE một entry `blocklist.entry_type='PREFIX'` thành công. Đọc bởi `BlocklistPrefixIndex.ensureFresh()`/`getPrefixVersion()` mỗi lần `onScreenCall` |
+| **contacts_priority_enabled** | **INTEGER** | **NOT NULL** | **1** | **(MỚI — v1.3/FR-11)** 0/1 — mặc định **BẬT** (khớp FR-11/AC1, ADR-008). Đọc bởi `BlocklistRepository.getSettingsFlags()`, dùng ở bước 4 của pipeline `onScreenCall` (ghi đè 1 khớp PREFIX nếu số là contact) |
+| **block_unknown_enabled** | **INTEGER** | **NOT NULL** | **0** | **(MỚI — v1.3/FR-12)** 0/1 — mặc định **TẮT** (khớp FR-12/AC1, ADR-008). Dùng ở bước 5 |
+| **block_anonymous_enabled** | **INTEGER** | **NOT NULL** | **0** | **(MỚI — v1.3/FR-12)** 0/1 — mặc định **TẮT** (khớp FR-12/AC1, ADR-008). Dùng SỚM NHẤT ở bước 1 (số ẩn danh/`RESTRICTED`/`UNKNOWN`/`PAYPHONE`) |
+| **block_international_enabled** | **INTEGER** | **NOT NULL** | **0** | **(MỚI — v1.3/FR-12)** 0/1 — mặc định **TẮT** (khớp FR-12/AC1, ADR-008). Dùng ở bước 5, cùng `flags` đã đọc với `block_unknown_enabled` (1 lần đọc, LLD v1.4) |
 
 - PRIMARY KEY: `id`
 - CHECK: `id = 1` — ép singleton ở tầng DB (không chỉ ở tầng app), chống việc vô tình `INSERT` thêm dòng thứ 2 khiến "nguồn sự thật" bị nhân bản mơ hồ.
+- **CHECK (MỚI — v1.3) `ck_blocklist_meta_contacts_priority_enabled`**: `contacts_priority_enabled IN (0,1)`
+- **CHECK (MỚI — v1.3) `ck_blocklist_meta_block_unknown_enabled`**: `block_unknown_enabled IN (0,1)`
+- **CHECK (MỚI — v1.3) `ck_blocklist_meta_block_anonymous_enabled`**: `block_anonymous_enabled IN (0,1)`
+- **CHECK (MỚI — v1.3) `ck_blocklist_meta_block_international_enabled`**: `block_international_enabled IN (0,1)`
+
+  (4 CHECK trên theo đúng quy ước Boolean chung của toàn schema — xem mục "Quy ước chung".)
 - Không FK nào trỏ vào/ra bảng này.
+- **Writer MỚI (v1.3)**: `SettingsService` (Dart, `lib/`) — mỗi lần người dùng đổi 1 toggle ở `SettingsScreen`, ghi `UPDATE blocklist_meta SET <cột> = ? WHERE id = 1` (chỉ 1 cột/lần, khớp `setFlag(flag, value)` — ADR-008); KHÔNG bao giờ `INSERT` dòng mới (dòng `id=1` luôn tồn tại sẵn từ seed lúc `onCreate`, xem DDL). **Reader MỚI (v1.3)**: `BlocklistRepository.getSettingsFlags()` (native, `CallScreeningService`) — `SELECT` cả 4 cột CÙNG một lần (không tách 4 query riêng), có fallback an toàn (`contacts_priority_enabled=1`, 3 cờ còn lại `=0` — đúng DEFAULT) khi đọc lỗi/không có dòng, theo đúng tinh thần fail-open đã áp dụng cho các lần đọc `blocklist`/`blocklist_meta` khác trong pipeline.
+- **Migration khi nâng cấp từ DB đã tồn tại (v1.2 → v1.3)**: xem mục "Chiến lược migration" — đây là trường hợp ADR-008 đã tự lưu ý ("đảm bảo giá trị default đúng khi áp dụng cho DB đã tồn tại từ trước").
 - **Khuyến nghị bắt buộc TĂNG counter CÙNG transaction với thay đổi `blocklist` (yêu cầu LLD) — chọn TRIGGER SQL, không phải tăng tay ở tầng ứng dụng**, vì:
   - Có từ **3 điểm ghi** entry PREFIX khác nhau ở tầng Dart theo LLD (`BlocklistService.addNumber` FR-9, xóa entry FR-9/AC7, `mergeEntriesInTransaction` cho Import FR-10) — tăng tay đòi hỏi nhớ gọi đúng 1 câu `UPDATE blocklist_meta ...` ở CẢ 3 nơi, trong CÙNG transaction logic với câu ghi `blocklist` tương ứng; bỏ sót 1 nơi (ví dụ thêm điểm ghi mới ở Phase sau mà quên) là lỗi im lặng, khó phát hiện bằng test thông thường (chỉ lộ ra khi `BlocklistPrefixIndex` không bao giờ refresh dù dữ liệu đã đổi).
   - Trigger SQL (`AFTER INSERT`/`AFTER DELETE` trên `blocklist`, lọc theo `entry_type`) đảm bảo ĐÚNG mọi lúc, với MỌI điểm ghi hiện tại và tương lai, KHÔNG PHỤ THUỘC việc tầng ứng dụng nhớ gọi thêm câu lệnh nào — và vì trigger chạy trong CÙNG transaction/CÙNG connection với câu lệnh gây ra nó (ngữ nghĩa trigger chuẩn của SQLite), yêu cầu "tăng counter TRONG CÙNG transaction" của LLD được thỏa đương nhiên, không cần code tầng ứng dụng tự quản lý transaction boundary cho việc này.
@@ -193,8 +220,9 @@ erDiagram
 | duration_seconds | INTEGER | NOT NULL | | Lưu sẵn (không tính lại từ started/ended mỗi lần đọc) — dùng bởi `evaluatePromptEligibility` (ngưỡng 3s) |
 | **confirmation_source** | **TEXT** | **NULL** | | **(MỚI — FR-8)** `'NOTIFICATION'` / `'DIALOG'` / `'RINGING_OVERLAY'` — nguồn/kênh đã ghi nhận `user_response`, tái dùng đúng tập giá trị `PendingPrompt.resolvedBy`/`pending_prompts.resolved_by`. Có giá trị **khi và chỉ khi** `user_response IS NOT NULL`. Đây là cột trả lời câu hỏi "xác nhận lúc đổ chuông (`RINGING_OVERLAY`) hay xác nhận sau cuộc gọi (`NOTIFICATION`/`DIALOG`)" — xem lý do chọn tái dùng/mở rộng khái niệm `resolved_by` thay vì đặt tên mới ở mục "Quyết định bổ sung cho FR-8" dưới |
 | **termination_outcome** | **TEXT** | **NULL** | | **(MỚI — FR-8)** Kết quả `CallTerminationOutcome` của lệnh `TelecomManager.endCall()`: `'SUCCESS'` / `'NOT_APPLICABLE_CALL_ENDED'` / `'NOT_APPLICABLE_STATE_CHANGED'` / `'FAILED_EXCEPTION'`, hoặc NULL nếu cuộc gọi không đi qua luồng ngắt gọi FR-8 (toàn bộ cuộc gọi FR-1..7 cũ, và cả nhánh "Không phải lừa đảo" của FR-8 — không gọi `endCall()`) |
-| **matched_entry_type** | **TEXT** | **NULL** | | **(MỚI — v1.2/FR-6, FR-9)** `'EXACT'` / `'PREFIX'`, hoặc NULL nếu cuộc gọi không bị chặn bởi `blocklist` tại thời điểm `CallScreeningService.onScreenCall` (`was_blocked=0`, hoặc `was_blocked=1` do nguyên nhân khác ngoài phạm vi Phase 1 — hiện tại không có, nhưng CHECK không giả định `was_blocked=1 ⟹ matched_entry_type NOT NULL` theo chiều ngược, xem CHECK dưới). Khớp `BlockMatchResult.entryType`/`CallRecordDraft.matchedEntryType` |
+| **matched_entry_type** | **TEXT** | **NULL** | | **(MỚI — v1.2/FR-6, FR-9)** `'EXACT'` / `'PREFIX'`, hoặc NULL nếu cuộc gọi không bị chặn bởi `blocklist` tại thời điểm `CallScreeningService.onScreenCall` (`was_blocked=0`, hoặc **`was_blocked=1` do nguyên nhân khác ngoài `blocklist` — từ v1.3/FR-12 ĐÃ CÓ trường hợp này thật: BLOCK-TOGGLE, xem cột `decision_reason` mới dưới**; CHECK không giả định `was_blocked=1 ⟹ matched_entry_type NOT NULL` theo chiều ngược, xem CHECK dưới). Khớp `BlockMatchResult.entryType`/`CallRecordDraft.matchedEntryType` |
 | **matched_prefix_value** | **TEXT** | **NULL** | | **(MỚI — v1.2/FR-6, FR-9)** Đầu số THỰC SỰ đã khớp (dài nhất, theo `BlocklistPrefixIndex.matchLongestPrefix`) — chỉ có giá trị khi `matched_entry_type='PREFIX'`. Ghi MỘT LẦN tại thời điểm chặn, KHÔNG tính lại sau đó dù entry đầu số gốc có bị xóa/đổi sau này (FR-6/AC3 — không hồi tố) |
+| **decision_reason** | **TEXT** | **NULL** | | **(MỚI — v1.3/FR-11/FR-12)** `'CONTACTS_PRIORITY'` (ALLOW — ưu tiên danh bạ, ghi đè một khớp PREFIX ở bước 4 của pipeline) / `'BLOCK_TOGGLE_UNKNOWN'` / `'BLOCK_TOGGLE_ANONYMOUS'` / `'BLOCK_TOGGLE_INTERNATIONAL'` (BLOCK — lý do chặn KHÔNG xuất phát từ `blocklist`), hoặc NULL cho mọi cuộc gọi khớp EXACT/PREFIX bình thường (không có ngoại lệ) và đa số cuộc gọi không bị ảnh hưởng bởi FR-11/FR-12. Khớp `ScreeningDecisionReason`/`ScreeningResult.decisionReason` (LLD v1.4) — giá trị được `CallScreeningService` xác định ngay tại `onScreenCall`, "mang theo" sang `CallMonitorService` qua `RingingCallNumberHolder.decisionReason` (in-memory, KHÔNG bền vững hóa riêng — xem "Giả định") trước khi ghi MỘT LẦN vào đây lúc `insertCallRecord` (tương tự cách `matched_prefix_value` được ghi một lần, không hồi tố) |
 
 - PRIMARY KEY: `id`
 - CHECK: `direction IN ('INCOMING')` — Phase 1 chỉ ghi cuộc gọi ĐẾN theo đúng phạm vi FR-6/AC1 và `CallEndedEvent` ("chỉ INCOMING mới tạo event này"). **Cố ý thắt chặt** để bắt lỗi logic sớm nếu code tương lai vô tình ghi cuộc gọi đi/nhỡ qua đường này; khi Phase sau mở rộng phạm vi, nới CHECK này là một bước migration tường minh (xem mục Migration).
@@ -215,11 +243,28 @@ erDiagram
   ((matched_entry_type IS NULL OR matched_entry_type = 'EXACT') AND matched_prefix_value IS NULL)
   ```
   Khớp đúng invariant LLD đã nêu cho `CallRecordDraft`/`CallHistoryEntryDto`: `matchedPrefixValue != null ⟺ matchedEntryType == PREFIX`.
-- **CHECK (MỚI — v1.2/FR-6, ràng buộc nhất quán theo yêu cầu đề bài) `ck_call_history_matched_type_requires_blocked`**: `matched_entry_type IS NULL OR was_blocked = 1` — khớp invariant LLD: `matchedEntryType != null ⟹ wasBlocked == true` (một cuộc gọi không bị `blocklist` chặn thì không thể có "loại entry đã khớp"). **Lưu ý đây là ràng buộc MỘT CHIỀU** — `was_blocked = 1` KHÔNG bắt buộc `matched_entry_type NOT NULL` ngược lại, vì khung CHECK này chỉ đóng gap "ghi mồ côi matched_entry_type khi không hề bị chặn"; không ép buộc mọi dòng `was_blocked=1` trong tương lai phải luôn xác định được loại entry (phòng hờ Phase sau có thêm nguyên nhân chặn khác ngoài `blocklist`, dù Phase 1 hiện tại nguyên nhân chặn DUY NHẤT chính là khớp `blocklist` nên trong thực tế hai điều kiện trùng nhau).
+- **CHECK (MỚI — v1.2/FR-6, ràng buộc nhất quán theo yêu cầu đề bài) `ck_call_history_matched_type_requires_blocked`**: `matched_entry_type IS NULL OR was_blocked = 1` — khớp invariant LLD: `matchedEntryType != null ⟹ wasBlocked == true` (một cuộc gọi không bị `blocklist` chặn thì không thể có "loại entry đã khớp"). **Lưu ý đây là ràng buộc MỘT CHIỀU** — `was_blocked = 1` KHÔNG bắt buộc `matched_entry_type NOT NULL` ngược lại, vì khung CHECK này chỉ đóng gap "ghi mồ côi matched_entry_type khi không hề bị chặn"; không ép buộc mọi dòng `was_blocked=1` phải luôn xác định được loại entry. **Cập nhật v1.3 — xác nhận CHECK này VẪN ĐÚNG, chỉ sửa diễn giải**: ghi chú gốc (v1.2) giả định "Phase 1 hiện tại nguyên nhân chặn DUY NHẤT chính là khớp `blocklist` nên trong thực tế hai điều kiện trùng nhau" — **giả định này KHÔNG còn đúng từ v1.3**: `decision_reason IN ('BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')` là trường hợp THỰC SỰ có `was_blocked=1` nhưng `matched_entry_type IS NULL` (chặn ngoài `blocklist`) — đúng đây là chiều ĐÃ được CHECK này chủ động KHÔNG cấm (one-directional, như thiết kế gốc đã dự phòng "phòng hờ Phase sau có thêm nguyên nhân chặn khác ngoài `blocklist`" — hoá ra là ngay trong Phase 1, không phải Phase sau). Không cần sửa CHECK, chỉ bổ sung CHECK riêng cho `decision_reason` (xem dưới), xem thêm "Sửa lỗi phát hiện ở `CallHistoryRepository.insertCallRecord`" trong mục "Quyết định bổ sung cho FR-11/FR-12/FR-13".
+- **CHECK (MỚI — v1.3/FR-11/FR-12) `ck_call_history_decision_reason`**: `decision_reason IS NULL OR decision_reason IN ('CONTACTS_PRIORITY', 'BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')`
+- **CHECK (MỚI — v1.3, loại trừ lẫn nhau với `matched_entry_type` — theo đúng yêu cầu "hai nguồn lý do không bao giờ đồng thời non-null") `ck_call_history_decision_reason_excludes_matched_entry_type`**: `decision_reason IS NULL OR matched_entry_type IS NULL`
+- **CHECK (MỚI — v1.3, ràng buộc cho nhánh ALLOW) `ck_call_history_decision_reason_contacts_priority`**:
+  ```
+  decision_reason IS NULL OR decision_reason != 'CONTACTS_PRIORITY' OR was_blocked = 0
+  ```
+  (kết hợp với CHECK loại trừ ở trên, tương đương `decision_reason='CONTACTS_PRIORITY' ⟹ was_blocked=0 AND matched_entry_type IS NULL`.)
+- **CHECK (MỚI — v1.3, ràng buộc cho nhánh BLOCK) `ck_call_history_decision_reason_block_toggle`**:
+  ```
+  decision_reason IS NULL
+  OR decision_reason NOT IN ('BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')
+  OR was_blocked = 1
+  ```
+  (kết hợp với CHECK loại trừ ở trên, tương đương `decision_reason IN {BLOCK_TOGGLE_*} ⟹ was_blocked=1 AND matched_entry_type IS NULL`.)
+
+  **Lưu ý về chiều ràng buộc (nhất quán với cách đã xử lý `ck_call_history_matched_type_requires_blocked`)**: LLD v1.4 viết 2 invariant này dưới dạng `⟺` (hai chiều) ở mức `ScreeningResult` tại thời điểm `onScreenCall` tạo ra nó. Áp y nguyên thành CHECK hai chiều ở mức DÒNG DỮ LIỆU đã lưu sẽ SAI: rất nhiều dòng `call_history` bình thường (không khớp `blocklist`, không toggle nào bật, không có lý do allow/block đặc biệt nào) cũng thỏa `was_blocked=0 AND matched_entry_type IS NULL` nhưng KHÔNG có `decision_reason='CONTACTS_PRIORITY'` — một CHECK hai chiều sẽ chặn nhầm các dòng hợp lệ này. 2 CHECK trên giữ đúng CHIỀU khả thi/hữu ích: khi `decision_reason` ĐÃ có giá trị, nó phải kéo theo đúng `was_blocked`/`matched_entry_type` tương ứng — không có chiều ngược, giống đúng tinh thần `ck_call_history_matched_type_requires_blocked` đã thiết kế từ v1.2.
 - Index đề xuất: `idx_call_history_ended_at (ended_at DESC)` — phục vụ `CallHistoryScreen` liệt kê "gần đây" (FR-6/AC2).
 - Index đề xuất: `idx_call_history_normalized_number (normalized_number)` — phục vụ tra cứu/join với `pending_prompts` và debug theo số.
 - **Không thêm index mới cho `confirmation_source`/`termination_outcome` (FR-8)**: SRS/HLD không có yêu cầu lọc/sắp xếp `CallHistoryScreen` theo 2 cột này (chỉ cần hiển thị), cardinality thấp (≤4 giá trị), và khối lượng dữ liệu cá nhân nhỏ — thêm index ở đây chỉ tốn chi phí ghi không đổi lại lợi ích đọc. Nếu sau này có yêu cầu "lọc lịch sử theo kết quả ngắt gọi", cân nhắc lại.
 - **Không thêm index mới cho `matched_entry_type`/`matched_prefix_value` (v1.2/FR-6)**: cùng lý do trên — `deriveDisplayStatus` (LLD pseudocode E8) là logic suy diễn ở tầng Dart chạy TRÊN bản ghi đã tải (theo trang, qua `idx_call_history_ended_at`), không phải một mệnh đề `WHERE` lọc theo 2 cột này ở SQL. FR-6/AC2 chỉ yêu cầu hiển thị trạng thái, không yêu cầu "lọc lịch sử chỉ hiện các cuộc gọi bị chặn theo đầu số X" — nếu yêu cầu đó xuất hiện ở Phase sau, cân nhắc lại.
+- **Không thêm index mới cho `decision_reason` (v1.3/FR-11/FR-12)**: cùng lý do trên — cardinality rất thấp (≤4 giá trị non-null), chỉ phục vụ hiển thị trạng thái (ví dụ "Đã cho qua vì là liên hệ trong danh bạ"/"Đã chặn vì số lạ") trên bản ghi đã tải theo trang, SRS không có AC nào yêu cầu lọc lịch sử riêng theo lý do allow/block này. Nếu yêu cầu đó xuất hiện ở Phase sau, cân nhắc lại.
 - Không FK ra bảng khác (bảng gốc, chỉ bị tham chiếu bởi `pending_prompts`).
 
 ### `pending_prompts` (MỚI — theo yêu cầu LLD mục "Rủi ro kiến trúc")
@@ -302,6 +347,24 @@ Xác nhận theo đúng yêu cầu khảo sát: toàn bộ luồng Export (`Bloc
 
 Xem mục "Cấu hình truy cập đồng thời (WAL/locking)", đoạn bổ sung v1.2.
 
+## Quyết định bổ sung cho FR-11/FR-12/FR-13 (v1.3)
+
+### 1. Vì sao 4 cờ FR-11/FR-12 là cột MỚI trên `blocklist_meta`, không phải bảng mới/`SharedPreferences`
+
+Đã xác nhận theo ADR-008 (quyết định của `system-architect`, chấp nhận bởi coordinator): `SharedPreferences`/Flutter `shared_preferences` bị loại vì không đảm bảo nhất quán cross-process nếu `CallScreeningService` chạy process riêng với Flutter engine (câu hỏi `android:process` vẫn CHƯA chốt dứt điểm — xem LLD "Ngoài phạm vi LLD này" — nhưng quyết định chọn SQLite ở ADR-008 ĐÚNG bất kể kết quả chốt đó là gì, vì SQLite đọc được từ mọi process). Mở rộng `blocklist_meta` (đã có từ FR-9, đã giải đúng loại rủi ro cross-process này cho `prefix_version`) thay vì tạo bảng mới — không có lý do kỹ thuật nào đòi hỏi 1 bảng riêng cho 4 cờ boolean đơn giản, singleton 1 dòng duy nhất vẫn đủ. Xem phân tích trade-off đầy đủ ở mục "Chi tiết từng bảng" (`blocklist_meta`).
+
+### 2. Vì sao `decision_reason` là cột MỚI riêng, không overload `matched_entry_type`
+
+LLD v1.4 đã tự quyết định dùng enum MỚI hoàn toàn (`ScreeningDecisionReason`), KHÔNG overload `EntryType`/`matched_entry_type` — `data-modeler` xác nhận và giữ nguyên quyết định này ở tầng DB: `matched_entry_type` CHỈ mang ý nghĩa "nguồn gốc khớp `blocklist`" (EXACT/PREFIX); lý do allow/block KHÔNG xuất phát từ `blocklist` (ưu tiên danh bạ, 3 toggle) là một CHIỀU THÔNG TIN KHÁC HẲN, không phải thêm giá trị enum vào `matched_entry_type` hiện có (ví dụ sẽ sai nếu thêm `'CONTACTS_PRIORITY'` làm 1 giá trị thứ 3 của `matched_entry_type` — gộp 2 khái niệm độc lập vào 1 cột, phá vỡ tính rõ ràng của CHECK và dễ nhầm "entry nào đã khớp" với "có cho qua hay không vì lý do khác"). 2 cột tách riêng + CHECK loại trừ lẫn nhau (`ck_call_history_decision_reason_excludes_matched_entry_type`) khớp đúng tinh thần đã áp dụng cho `confirmation_source` vs `user_response`/`termination_outcome` ở FR-8 (2 câu hỏi độc lập, không gộp).
+
+### 3. Sửa lỗi phát hiện ở `CallHistoryRepository.insertCallRecord` — xác nhận schema KHÔNG cần sửa, chỉ code tầng ứng dụng cần sửa
+
+LLD v1.4 phát hiện: code hiện tại (dự kiến) suy ra `wasBlocked = draft.matchedEntryType != null` — SAI từ v1.3 vì có thể `wasBlocked=true` mà KHÔNG có `matchedEntryType` (chặn qua BLOCK-TOGGLE). **Xác nhận ở mức schema**: cột `call_history.was_blocked` ở bảng này **ĐÃ LUÔN LÀ** `INTEGER NOT NULL` tường minh (không phải cột tính toán/derived, không phải generated column) từ v1.0 — bản thân THIẾT KẾ DB chưa bao giờ "derive" `was_blocked` từ `matched_entry_type`; lỗi nằm hoàn toàn ở TẦNG ỨNG DỤNG (`CallRecordDraft`/`CallHistoryRepository.insertCallRecord`, Kotlin), nơi giá trị GHI VÀO `was_blocked` được tính sai trước khi `INSERT`. Vì vậy: **không có thay đổi schema nào cần làm cho việc sửa lỗi này** — chỉ cần `CallRecordDraft` có field `wasBlocked: Boolean` tường minh (độc lập, không derive) như LLD v1.4 đã chốt, rồi `INSERT` đúng giá trị đó vào cột đã có sẵn. CHECK constraint mới `ck_call_history_decision_reason_block_toggle` ở đây đóng vai trò RÀNG BUỘC DỮ LIỆU (chặn ở tầng DB nếu code tương lai lại ghi sai — ví dụ cố ghi `decision_reason='BLOCK_TOGGLE_UNKNOWN'` kèm `was_blocked=0`), không phải bản thân là cơ chế sửa lỗi tính toán.
+
+### 4. Xác nhận KHÔNG cần bảng mới cho FR-13 (PERMISSION-CHECK)
+
+Theo đúng yêu cầu khảo sát: `system-architect` đã phân tích và ADR-008 đã chốt — `PermissionCheckWorker` dùng notification ID CỐ ĐỊNH theo từng loại quyền (ví dụ `NOTIFICATION_ID_MISSING_OVERLAY`); `NotificationManagerCompat.notify(fixedId, ...)` tự thay thế thông báo cũ cùng ID, đạt tính idempotent MIỄN PHÍ từ chính API Notification của Android. **Không có entity/trạng thái nghiệp vụ nào cần bền vững hóa riêng** cho "đã từng thông báo quyền X lần nào/khi nào" — toàn bộ logic kiểm tra quyền (`RoleManager.isRoleHeld`, `checkSelfPermission`, `Settings.canDrawOverlays`, `NotificationManagerCompat.areNotificationsEnabled`) đọc trực tiếp TRẠNG THÁI HIỆN TẠI của hệ điều hành mỗi lần `doWork()` chạy (24h/lần) — không đọc/ghi gì vào SQLite. **Xác nhận rõ ở đây, kèm lý do, để tránh thiết kế dư thừa ở bước sau** (đúng yêu cầu khảo sát ban đầu): nếu ERD/SRS Phần 7.3 ở phiên bản trước có đề xuất một bảng kiểu `permission_notification_state`, quyết định cuối (ADR-008) là KHÔNG cần — giữ nguyên không có bảng nào như vậy trong schema này.
+
 ## Cấu hình truy cập đồng thời (WAL/locking) — áp dụng cho toàn bộ file SQLite
 
 Áp dụng cho **mọi connection** mở tới file SQLite chung, cả từ `sqflite` (Dart) và `SQLiteOpenHelper`/driver native (Kotlin):
@@ -337,6 +400,12 @@ PRAGMA busy_timeout = 3000;    -- cho các connection khác (Dart UI, CallMonito
 - **Khuyến nghị (không bắt buộc ở Phase 1, ghi nhận cho `test-plan-writer`/review hiệu năng thật)**: nếu đo thực tế cho thấy file import lớn khiến transaction kéo dài đáng kể (>1-2s), cân nhắc CHIA `mergeEntriesInTransaction` thành nhiều transaction nhỏ hơn (ví dụ mỗi 500 dòng một `BEGIN...COMMIT`) để giảm thời gian giữ write-lock liên tục — đánh đổi: mất tính "tất cả hoặc không gì cả" ở MỨC TOÀN FILE (chỉ còn đúng ở mức mỗi chunk 500 dòng, một crash giữa chừng có thể để lại một phần entry đã import) — **đây là đánh đổi cần `low-level-designer` xác nhận lại nếu áp dụng**, vì phá vỡ đúng bất biến "không có trạng thái nửa-import" mà FR-10/AC10 yêu cầu theo thiết kế hiện tại (1 transaction duy nhất). **Không đổi** `busy_timeout` hiện có để "giải quyết" rủi ro này — tăng `busy_timeout` chỉ che giấu triệu chứng (chờ lâu hơn) mà không giảm thời gian giữ lock thực sự.
 - **Kết luận v1.2**: KHÔNG cần đổi `PRAGMA journal_mode`/`synchronous`/`busy_timeout` hiện có. Rủi ro write-write contention do import lớn là CÓ THỰC về lý thuyết nhưng thấp về xác suất ở quy mô dữ liệu cá nhân, đã có fallback lỗi sẵn ở tầng ứng dụng — ghi nhận là rủi ro đã biết (not blocking), không phải lỗi thiết kế cần sửa ngay.
 
+**Tác động của 4 cờ settings mới (v1.3/FR-11/FR-12) lên pattern ghi đồng thời — KHÔNG đổi kết luận, mức tăng không đáng kể**:
+- **Ghi (`SettingsService.setFlag`)**: `UPDATE blocklist_meta SET <1 cột> = ? WHERE id = 1` — tần suất RẤT THẤP (chỉ khi người dùng chủ động đổi cài đặt ở `SettingsScreen`, không phải path tự động chạy mỗi cuộc gọi), cùng pattern ghi đơn dòng đã có cho `prefix_version`/trigger.
+- **Đọc (`getSettingsFlags()`)**: thêm vào ĐÚNG round-trip đã có (`SELECT ... FROM blocklist_meta WHERE id = 1`, chỉ `SELECT` thêm 4 cột) trên connection đọc của `CallScreeningService` — KHÔNG thêm query riêng, KHÔNG tăng số round-trip, nên không ảnh hưởng ngân sách ~1500ms đã chốt.
+- **Không có rủi ro mới**: WAL vẫn đảm bảo reader (`getSettingsFlags`) không bị block bởi writer (`setFlag`, hoặc bởi trigger `prefix_version`/`mergeEntriesInTransaction` đang chạy) — đúng nguyên lý đã áp dụng cho `prefix_version` từ v1.2, không cần phân tích lại từ đầu.
+- **Kết luận v1.3**: KHÔNG cần đổi `PRAGMA journal_mode`/`synchronous`/`busy_timeout` hiện có.
+
 ## Quy ước chung (áp dụng mọi bảng)
 
 - **Số điện thoại**: cột `TEXT`, lưu dạng **E.164 chuẩn hóa** (`+<mã quốc gia><số>`, ví dụ `+84901234567`) — giả định cụ thể hóa hành vi của `PhoneNumberNormalizer` (Dart & Kotlin) chưa được LLD định nghĩa chính xác định dạng đầu ra. **Cần xác nhận lại với team**: nếu `PhoneNumberNormalizer` thực tế chọn định dạng khác (ví dụ chỉ số quốc gia nội địa không `+`), các CHECK `LIKE '+%'` trong toàn bộ DDL dưới đây phải sửa theo, và quan trọng hơn — **2 cài đặt `PhoneNumberNormalizer` (Dart và Kotlin) phải cho ra cùng một chuỗi output cho cùng input**, nếu không UNIQUE constraint trên `blocklist`/`confirmed_safe` sẽ không coalesce đúng số trùng (2 bản ghi khác nhau cho "cùng một số" theo 2 cách chuẩn hóa khác nhau) — rủi ro kỹ thuật này đã được LLD tự nêu ("tồn tại song song, độc lập ở cả Dart và Kotlin... cần test tích hợp so sánh output 2 bên") — khuyến nghị bổ sung test đối chiếu UNIQUE-coalescing thật trên DB chung, không chỉ so sánh output hàm.
@@ -351,6 +420,10 @@ PRAGMA busy_timeout = 3000;    -- cho các connection khác (Dart UI, CallMonito
 **Bổ sung FR-8 (v1.1) — vẫn KHÔNG breaking change**: toàn bộ cột/bảng mới cho FR-8 (`call_history.confirmation_source`, `call_history.termination_outcome`, `pending_prompts.kind`, `pending_prompts.termination_outcome`, nới `pending_prompts.call_record_id` thành nullable) vẫn nằm trong `version = 1` — vì **chưa có migration file thật nào được viết ra** (đây vẫn là bước thiết kế/nháp trước khi code), không có dữ liệu thật đang chạy cần tương thích ngược. Nếu các cột này được bổ sung SAU KHI `version = 1` đã thật sự lên production/thiết bị người dùng, đây sẽ là trường hợp cần `version = 2` + chiến lược expand-contract (thêm cột mới NULL-được ở bước 1, không cần backfill vì giá trị NULL là hợp lệ/mong đợi cho các bản ghi FR-1..7 cũ — bản thân cột đã được thiết kế NULL-default đúng ngữ nghĩa "không áp dụng", nên về bản chất kỹ thuật bước 2 "backfill" là không cần, bước 3 "chuyển code đọc sang cột mới" vẫn cần làm tại các điểm `CallMonitorService` ghi/đọc các cột này).
 
 **Bổ sung FR-9/FR-10 (v1.2) — vẫn KHÔNG breaking change, nhưng MỘT điểm cần lưu ý riêng khi áp dụng thật**: toàn bộ thay đổi v1.2 (`blocklist.entry_type` + đổi UNIQUE thành composite + thêm `source='IMPORTED'`, bảng mới `blocklist_meta` + 2 trigger, `call_history.matched_entry_type`/`matched_prefix_value`) vẫn nằm trong `version = 1` với lý do giống FR-8 — chưa có migration/dữ liệu thật nào đang chạy. **Điểm cần lưu ý riêng cho `entry_type`** (khác các cột FR-8 ở trên): `entry_type` được thiết kế `NOT NULL` KHÔNG có `DEFAULT`, vì ở `version = 1` (bảng mới hoàn toàn, chưa có dữ liệu) mọi `INSERT` đều do code chủ động truyền `entry_type` — không có "dữ liệu cũ thiếu cột này" cần lo. **Nếu** `blocklist` (dạng v1.1, không có `entry_type`) đã thật sự lên production TRƯỚC KHI đổi sang v1.2 (tình huống giả định, không phải tình huống hiện tại của SafeCall), việc thêm `entry_type NOT NULL` vào bảng đã có dữ liệu sẽ là breaking change thật, cần expand-contract: (a) `ALTER TABLE blocklist ADD COLUMN entry_type TEXT` (SQLite CHỈ cho phép `ADD COLUMN` với giá trị NULL-được hoặc có `DEFAULT` hằng số — không thể thêm trực tiếp `NOT NULL` không-default vào bảng có dữ liệu), (b) backfill toàn bộ dòng cũ `UPDATE blocklist SET entry_type = 'EXACT' WHERE entry_type IS NULL` (mọi dòng TRƯỚC v1.2 chắc chắn là `EXACT`, vì FR-9/PREFIX chưa tồn tại trước đó — backfill không mơ hồ), (c) chỉ SAU KHI backfill xong mới có thể ép `NOT NULL` thật (SQLite không hỗ trợ `ALTER COLUMN ... SET NOT NULL` trực tiếp — cần recreate bảng theo mẫu 12-bước `sqlite.org/lang_altertable.html#otheralter`: tạo bảng mới đúng schema đích, copy dữ liệu, xóa bảng cũ, đổi tên), (d) đồng thời đổi UNIQUE đơn thành composite cũng cần recreate bảng (SQLite không hỗ trợ sửa constraint UNIQUE tại chỗ). Toàn bộ (a)-(d) PHẢI làm ở CẢ HAI phía (Dart `onUpgrade`, Kotlin `onUpgrade`) theo đúng nguyên tắc #3 dưới. Vì đây KHÔNG phải tình huống thực tế của SafeCall hiện tại (chưa có migration/thiết bị thật nào chạy `version=1`), mục này chỉ là HƯỚNG DẪN DỰ PHÒNG — không áp dụng ngay.
+
+**Bổ sung FR-11/FR-12/FR-13 (v1.3) — vẫn KHÔNG breaking change, cùng lý do "chưa có migration thật nào"**: 4 cột mới trên `blocklist_meta` (`contacts_priority_enabled`/`block_unknown_enabled`/`block_anonymous_enabled`/`block_international_enabled`) vẫn nằm trong `version = 1` — vì SafeCall CHƯA có migration file thật nào được viết ra, chưa có thiết bị thật nào chạy DB này. **Không có cột/bảng nào cho FR-13** (đã xác nhận ở mục "Quyết định bổ sung cho FR-11/FR-12/FR-13"), nên không có gì cần migration cho FR-13.
+
+**Điểm cần lưu ý riêng — ĐÚNG như ADR-008 tự ghi nhận ở mục "Consequences"**: nếu ngược lại với tình huống hiện tại (giả định), `blocklist_meta` (dạng v1.2, chỉ có `prefix_version`) đã THẬT SỰ lên production/thiết bị người dùng TRƯỚC KHI đổi sang v1.3, việc thêm 4 cột `NOT NULL` vào bảng đã có 1 dòng dữ liệu (`id=1`) sẽ cần đúng mẫu `ALTER TABLE blocklist_meta ADD COLUMN <col> INTEGER NOT NULL DEFAULT <0 hoặc 1>` — **trường hợp DUY NHẤT trong toàn bộ migration dự phòng của tài liệu này mà SQLite CHO PHÉP thêm cột `NOT NULL` trực tiếp KHÔNG cần recreate bảng 12-bước**, vì SQLite's `ALTER TABLE ADD COLUMN` chấp nhận `NOT NULL` nếu kèm `DEFAULT` là một hằng số cụ thể (khác với `entry_type` ở v1.2 — không có default tự nhiên rõ ràng cho mọi dòng cũ, nên phải backfill trước). Do có DEFAULT đúng-theo-nghiệp-vụ sẵn (`contacts_priority_enabled DEFAULT 1`, 3 cột còn lại `DEFAULT 0` — đúng giá trị mặc định FR-11/AC1, FR-12/AC1), dòng `id=1` hiện có TỰ ĐỘNG nhận đúng giá trị mặc định ngay khi `ALTER TABLE` chạy — KHÔNG cần bước backfill riêng. Đây CHÍNH LÀ lý do `data-modeler` chọn `DEFAULT` hằng số tường minh cho 4 cột này (khác với `entry_type`/`prefix_version` ban đầu khi bảng chưa có dữ liệu) — đơn giản hóa đáng kể migration dự phòng này nếu áp dụng thật ở phase sau. Vẫn PHẢI làm ở CẢ HAI phía (`onUpgrade` Dart và Kotlin) theo nguyên tắc #3 dưới nếu tình huống này xảy ra thật. Vì đây KHÔNG phải tình huống thực tế hiện tại, mục này cũng chỉ là HƯỚNG DẪN DỰ PHÒNG.
 
 **Chiến lược version hóa chuẩn bị cho migration tương lai (theo yêu cầu)**:
 
@@ -407,12 +480,22 @@ CREATE INDEX IF NOT EXISTS idx_blocklist_prefix_values
 -- isBlockedExact() (WHERE normalized_number = ? AND entry_type = 'EXACT') - khong can index rieng.
 
 -- MOI v1.2 (FR-9): bang singleton luu prefix_version, doc boi BlocklistPrefixIndex.ensureFresh()
+-- MO RONG v1.3 (FR-11/FR-12, ADR-008): them 4 cot co cau hinh settings (khong lien quan prefix_version)
 CREATE TABLE IF NOT EXISTS blocklist_meta (
-    id             INTEGER PRIMARY KEY,
-    prefix_version INTEGER NOT NULL DEFAULT 0,
-    CONSTRAINT ck_blocklist_meta_singleton CHECK (id = 1)
+    id                            INTEGER PRIMARY KEY,
+    prefix_version                INTEGER NOT NULL DEFAULT 0,
+    contacts_priority_enabled     INTEGER NOT NULL DEFAULT 1,  -- MOI v1.3 (FR-11): mac dinh BAT
+    block_unknown_enabled         INTEGER NOT NULL DEFAULT 0,  -- MOI v1.3 (FR-12): mac dinh TAT
+    block_anonymous_enabled       INTEGER NOT NULL DEFAULT 0,  -- MOI v1.3 (FR-12): mac dinh TAT
+    block_international_enabled   INTEGER NOT NULL DEFAULT 0,  -- MOI v1.3 (FR-12): mac dinh TAT
+    CONSTRAINT ck_blocklist_meta_singleton CHECK (id = 1),
+    CONSTRAINT ck_blocklist_meta_contacts_priority_enabled CHECK (contacts_priority_enabled IN (0,1)),
+    CONSTRAINT ck_blocklist_meta_block_unknown_enabled CHECK (block_unknown_enabled IN (0,1)),
+    CONSTRAINT ck_blocklist_meta_block_anonymous_enabled CHECK (block_anonymous_enabled IN (0,1)),
+    CONSTRAINT ck_blocklist_meta_block_international_enabled CHECK (block_international_enabled IN (0,1))
 );
 -- Seed dong duy nhat ngay sau khi tao bang (trong cung onCreate, CA HAI phia):
+-- v1.3: khong can liet ke 4 cot moi trong INSERT - DEFAULT da dung theo nghiep vu (1/0/0/0)
 INSERT OR IGNORE INTO blocklist_meta (id, prefix_version) VALUES (1, 0);
 
 -- MOI v1.2 (FR-9): trigger tang prefix_version TRONG CUNG transaction voi thay doi entry PREFIX
@@ -454,6 +537,7 @@ CREATE TABLE IF NOT EXISTS call_history (
     termination_outcome  TEXT,    -- MOI FR-8 (v1.1): 'SUCCESS' / 'NOT_APPLICABLE_CALL_ENDED' / 'NOT_APPLICABLE_STATE_CHANGED' / 'FAILED_EXCEPTION'
     matched_entry_type   TEXT,    -- MOI v1.2 (FR-6/FR-9): 'EXACT' / 'PREFIX', chi khi was_blocked=1
     matched_prefix_value TEXT,    -- MOI v1.2 (FR-6/FR-9): dau so thuc su khop, chi khi matched_entry_type='PREFIX'
+    decision_reason      TEXT,    -- MOI v1.3 (FR-11/FR-12): 'CONTACTS_PRIORITY' / 'BLOCK_TOGGLE_UNKNOWN' / 'BLOCK_TOGGLE_ANONYMOUS' / 'BLOCK_TOGGLE_INTERNATIONAL', loai tru matched_entry_type
     started_at           INTEGER NOT NULL,
     ended_at             INTEGER NOT NULL,
     duration_seconds     INTEGER NOT NULL,
@@ -501,6 +585,22 @@ CREATE TABLE IF NOT EXISTS call_history (
     ),
     CONSTRAINT ck_call_history_matched_type_requires_blocked CHECK (
         matched_entry_type IS NULL OR was_blocked = 1
+    ),
+    -- MOI v1.3 (FR-11/FR-12):
+    CONSTRAINT ck_call_history_decision_reason CHECK (
+        decision_reason IS NULL
+        OR decision_reason IN ('CONTACTS_PRIORITY', 'BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')
+    ),
+    CONSTRAINT ck_call_history_decision_reason_excludes_matched_entry_type CHECK (
+        decision_reason IS NULL OR matched_entry_type IS NULL
+    ),
+    CONSTRAINT ck_call_history_decision_reason_contacts_priority CHECK (
+        decision_reason IS NULL OR decision_reason != 'CONTACTS_PRIORITY' OR was_blocked = 0
+    ),
+    CONSTRAINT ck_call_history_decision_reason_block_toggle CHECK (
+        decision_reason IS NULL
+        OR decision_reason NOT IN ('BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')
+        OR was_blocked = 1
     )
 );
 CREATE INDEX IF NOT EXISTS idx_call_history_ended_at ON call_history (ended_at DESC);
@@ -586,6 +686,13 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 - **Entry PREFIX chỉ được tạo/xóa ở tầng Dart, KHÔNG BAO GIỜ qua native** (LLD mục "Phần D") — giả định này được PHẢN ÁNH ở thiết kế trigger (chỉ cần đúng trong 1 transaction tại tầng Dart, không cần đồng bộ thêm gì ở phía Kotlin cho `blocklist_meta`); nếu giả định này sai trong tương lai (native cũng tạo PREFIX), trigger vẫn đúng (trigger chạy bất kể client ghi là Dart hay Kotlin, vì nó gắn ở tầng DB) — không cần sửa thiết kế này, chỉ cần sửa giả định ở LLD.
 - **Không giới hạn kích thước transaction cho `mergeEntriesInTransaction`** (khớp FR-10/AC11 "không giới hạn số lượng entry ở Phase 1") — xem rủi ro write-write contention đã ghi nhận ở mục WAL/locking; đây là giả định mức ĐỘ RỦI RO CHẤP NHẬN ĐƯỢC ở quy mô dữ liệu cá nhân, cần `system-architect` xác nhận lại nếu có số liệu thực tế cho thấy rủi ro cao hơn dự kiến.
 
+**Bổ sung giả định cho FR-11/FR-12/FR-13 (v1.3)**:
+
+- **Thứ tự ưu tiên khi cả `block_unknown_enabled` và `block_international_enabled` cùng khớp (một số lạ, quốc tế, không phải contact)**: LLD v1.4 tự chọn `BLOCK_TOGGLE_INTERNATIONAL` (cụ thể hơn) — đây là QUYẾT ĐỊNH LOGIC Ở TẦNG ỨNG DỤNG (`CallScreeningService` bước 5), KHÔNG phải ràng buộc toàn vẹn dữ liệu ở DB: schema CHO PHÉP cả 4 giá trị `decision_reason` độc lập, không CHECK nào ép buộc thứ tự chọn giữa `BLOCK_TOGGLE_UNKNOWN`/`BLOCK_TOGGLE_INTERNATIONAL` khi cả 2 điều kiện cùng đúng — nếu `ui-ux-designer`/coordinator xác nhận lại thứ tự khác, không cần đổi schema, chỉ đổi logic `onScreenCall`.
+- **`decision_reason` được ghi MỘT LẦN tại thời điểm quyết định (`onScreenCall`), KHÔNG tính lại/hồi tố sau đó** — cùng tinh thần đã áp dụng cho `matched_prefix_value` (FR-6/AC3): nếu người dùng đổi cờ settings SAU KHI một cuộc gọi đã được ghi lịch sử, dòng lịch sử cũ giữ nguyên `decision_reason` cũ, không tự động cập nhật lại.
+- **`RingingCallNumberHolder.decisionReason` (in-memory, mang `CONTACTS_PRIORITY` từ `CallScreeningService` sang `CallMonitorService`) không cần bền vững hóa riêng** — khác với `pending_prompts` (được bền vững hóa vì phải sống sót qua process restart cho luồng xác nhận lừa đảo lúc đổ chuông), giả định rằng nếu `CallMonitorService` process bị kill đúng lúc giữa `onScreenCall` và `handleCallEnded()`, mất giá trị `decisionReason` chỉ dẫn đến thiếu 1 trường hiển thị tùy chọn ở lịch sử (không mất an toàn — quyết định ALLOW/BLOCK thật đã được `CallScreeningService` thực thi xong qua `respondToCall()` TRƯỚC đó) — cần `low-level-designer` xác nhận lại nếu đây không đúng với rủi ro thực tế của `RingingCallNumberHolder` hiện có (LLD không đổi cơ chế bền vững hóa của holder này ở v1.4).
+- **Không cần bảng/cột nào cho "trạng thái đã thông báo thiếu quyền" (FR-13)** — xác nhận theo ADR-008 (notification ID cố định, idempotent miễn phí từ Android Notification API); không có giả định rủi ro nào cần nêu thêm ở mức schema vì FR-13 không chạm SQLite.
+
 ## Ngoài phạm vi thiết kế này
 
 Không có vấn đề MỚI phát hiện ở phần schema hiện có (4 bảng FR-1..7) khi khảo sát cho FR-8 — không phát hiện vấn đề nào ở hệ thống hiện có cần tách riêng.
@@ -594,6 +701,8 @@ Không có vấn đề MỚI phát hiện ở phần schema hiện có (4 bảng
 
 **Bổ sung v1.2**: không phát hiện vấn đề MỚI nào ở phần schema hiện có (4 bảng FR-1..8) khi khảo sát cho FR-9/FR-10/FR-6-mở-rộng. Các mục sau KHÔNG thuộc phạm vi `data-modeler`, nêu lại đúng theo "Ngoài phạm vi LLD" để không lặp quyết định ở đây: cấu hình `android:process` thật cho `CallScreeningService` (`system-architect`); lựa chọn plugin Share Sheet/file picker thật và review quyền (`security-auditor` khi có code thật); nội dung text UI cho Export/Import, nhãn EXACT/PREFIX, cảnh báo khớp N contact (`ui-ux-designer`); test thiết bị thật cho crash giữa transaction import theo OEM (`test-plan-writer`).
 
+**Bổ sung v1.3**: không phát hiện vấn đề MỚI nào ở phần schema hiện có (5 bảng FR-1..10) khi khảo sát cho FR-11/FR-12/FR-13. Các mục sau KHÔNG thuộc phạm vi `data-modeler`, nêu lại đúng theo "Ngoài phạm vi ADR-008" để không lặp quyết định ở đây: cấu hình `android:process` thật cho `CallScreeningService` vẫn CHƯA chốt dứt điểm (`system-architect`, nợ kỹ thuật cũ không mới phát sinh từ v1.3); copy UX cho thông báo nhắc quyền ("khoảng mỗi ngày", gộp/tách thông báo khi nhiều quyền thiếu cùng lúc) và thứ tự ưu tiên `BLOCK_TOGGLE_UNKNOWN` vs `BLOCK_TOGGLE_INTERNATIONAL` khi cùng khớp (`ui-ux-designer`); review `PermissionCheckWorker`/notification channel khi có code thật, không lộ thông tin nhạy cảm qua nội dung notification (`security-auditor`); test hành vi trễ dưới Doze/App Standby đa OEM, test notification ID cố định không tạo thông báo trùng (`test-plan-writer`). Rủi ro "`POST_NOTIFICATIONS` tự tham chiếu" (ADR-008 "Consequences") và rủi ro Doze/App Standby là rủi ro VẬN HÀNH của `PermissionCheckWorker`, không phải vấn đề schema — không có hành động nào ở tầng DB để giảm thiểu, ghi nhận lại để không bị hiểu nhầm là đã xử lý ở đây.
+
 ## Bước tiếp theo gợi ý
 
 - Viết migration file thật (DDL `onCreate`/`onUpgrade`) ở CẢ HAI phía — Dart (`sqflite`, `database_factory`/`migration` helper) và Kotlin (`SQLiteOpenHelper` hoặc tương đương) — dựa trên thiết kế này (bao gồm cột/bảng FR-8 VÀ FR-9/FR-10 v1.2), đảm bảo DDL 2 phía giống nhau tuyệt đối theo nguyên tắc ở mục "Chiến lược migration" — **lưu ý riêng v1.2**: trigger `blocklist_meta` chỉ cần tạo 1 lần trong `onCreate` của CẢ HAI phía (dùng `CREATE TRIGGER IF NOT EXISTS`), không phụ thuộc bên nào mở file trước.
@@ -601,4 +710,6 @@ Không có vấn đề MỚI phát hiện ở phần schema hiện có (4 bảng
 - **Xác nhận lại với tác giả LLD/`low-level-designer` (FR-8, v1.1)** đề xuất điều chỉnh `flushPendingTerminationOutcomeIfAny` để đọc từ `pending_prompts.termination_outcome` (DB, bền vững) thay vì chỉ từ map in-memory `pendingTerminationOutcomes` — xem mục "Quyết định bổ sung cho FR-8" — trước khi code `resolveRingingYes`/luồng 2 thật, vì đây là đề xuất của `data-modeler`, chưa phải quyết định đã chốt hai chiều với LLD.
 - **Xác nhận lại với tác giả LLD/`low-level-designer` (FR-9/FR-10, v1.2)**: (a) lựa chọn TRIGGER SQL cho `blocklist_meta.prefix_version` (thay vì tăng tay ở tầng ứng dụng); (b) quyết định ALLOW cùng giá trị tồn tại vừa EXACT vừa PREFIX — trước khi code `BlocklistService`/`BlocklistRepository` thật.
 - **Đo thời gian thực tế của `mergeEntriesInTransaction` với file import lớn** (`test-plan-writer`/review hiệu năng) trước khi quyết định có cần chia nhỏ transaction hay không — xem mục WAL/locking v1.2.
-- Sau khi viết migration thật ở cả 2 phía, dùng `db-schema-reviewer` để review trước khi apply lên bất kỳ môi trường nào (bao gồm cả thiết bị dev/test cá nhân, vì local-only không có "staging" riêng) — áp dụng cho TOÀN BỘ schema, bao gồm cả phần FR-1..8 cũ và phần FR-9/FR-10/FR-6-mở-rộng mới bổ sung ở bản v1.2 này (đặc biệt: 2 trigger mới, CHECK liên quan `entry_type`, UNIQUE composite).
+- **Xác nhận lại tên cột `decision_reason`/4 cờ `blocklist_meta`** đã dùng ĐÚNG NGUYÊN VĂN tên mà LLD v1.4 kỳ vọng (ghi rõ ở LLD mục "Giả định đã đưa ra": "nếu `data-modeler`/ADR-008 đổi tên, cần đồng bộ lại `BlocklistRepository.getSettingsFlags()`/`CallHistoryRepository.insertCallRecord`") — tên trong ERD này đã khớp nguyên văn ADR-008/LLD v1.4 (`contacts_priority_enabled`, `block_unknown_enabled`, `block_anonymous_enabled`, `block_international_enabled`, `decision_reason`), không cần đổi gì thêm, nhưng vẫn cần `low-level-designer` xác nhận lần cuối trước khi code thật.
+- Khi code `CallRecordDraft`/`CallHistoryRepository.insertCallRecord`, đảm bảo `wasBlocked` là field TƯỜNG MINH (không derive từ `matchedEntryType`) đúng như LLD v1.4 đã chốt — xem mục "Quyết định bổ sung cho FR-11/FR-12/FR-13" ở trên; CHECK mới (`ck_call_history_decision_reason_block_toggle`) sẽ bắt lỗi ở tầng DB nếu code tương lai lặp lại đúng loại lỗi suy diễn này.
+- Sau khi viết migration thật ở cả 2 phía, dùng `db-schema-reviewer` để review trước khi apply lên bất kỳ môi trường nào (bao gồm cả thiết bị dev/test cá nhân, vì local-only không có "staging" riêng) — áp dụng cho TOÀN BỘ schema, bao gồm cả phần FR-1..10 cũ và phần FR-11/FR-12/FR-13 mới bổ sung ở bản v1.3 này (đặc biệt: 4 cột mới + 4 CHECK boolean trên `blocklist_meta`; cột `decision_reason` + 4 CHECK mới trên `call_history`, bao gồm CHECK loại trừ lẫn nhau với `matched_entry_type`).

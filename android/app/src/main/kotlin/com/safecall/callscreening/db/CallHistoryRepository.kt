@@ -2,6 +2,7 @@ package com.safecall.callscreening.db
 
 import android.content.ContentValues
 import com.safecall.callscreening.EntryType
+import com.safecall.callscreening.ScreeningDecisionReason
 
 /** Nem ra khi ghi `call_history` loi - LLD bang loi: catch, log, KHONG retry, KHONG anh huong response da gui. */
 class CallHistoryWriteException(message: String, cause: Throwable? = null) : Exception(message, cause)
@@ -11,16 +12,29 @@ class CallHistoryWriteException(message: String, cause: Throwable? = null) : Exc
  * [matchedEntryType]/[matchedPrefixValue] (FR-6/FR-9, 7.3.1) CHI co gia tri khi `wasBlocked=true`
  * (nhanh chan real-time, ghi tu `CallScreeningService`) - `CallMonitorService` (Luong 2) luon
  * truyen ca 2 gia tri null (dung nhu LLD: "CallMonitorService luon truyen matchedEntryType=null").
+ *
+ * [wasBlocked] (sua loi phat hien o LLD v1.4/cascade FR-11/FR-12): TRUOC DAY bi suy ra tai
+ * `insertCallRecord` bang `matchedEntryType != null` - SAI vi gia dinh ngam "khop blocklist la ly
+ * do chan DUY NHAT", khong con dung tu khi co ly do chan KHONG qua blocklist (BLOCK-TOGGLE: chan so
+ * la/an danh/quoc te - se mang `matchedEntryType=null` nhung `wasBlocked=true`). Chuyen thanh field
+ * tuong minh, BAT BUOC caller tu quyet dinh dung - khong con suy dien ngam tai DAO.
  */
 data class CallRecordDraft(
     val rawNumber: String?,
     val normalizedNumber: String?,
     val wasAnswered: Boolean,
+    val wasBlocked: Boolean,
     val startedAtEpochMillis: Long,
     val endedAtEpochMillis: Long,
     val durationSeconds: Int,
     val matchedEntryType: EntryType? = null,
     val matchedPrefixValue: String? = null,
+    // FR-11/FR-12 (LLD v1.4) - loai tru matchedEntryType (ERD v1.3 CHECK
+    // ck_call_history_decision_reason_excludes_matched_entry_type). CONTACTS_PRIORITY chi khi
+    // wasBlocked=false; BLOCK_TOGGLE_* chi khi wasBlocked=true. Chua co producer thuc (pipeline
+    // CallScreeningService cho FR-11/FR-12 chua duoc code) - field nay sanitized tren duong truoc
+    // khi code pipeline do, luon null cho toi khi FR-11/FR-12 duoc trien khai.
+    val decisionReason: ScreeningDecisionReason? = null,
 )
 
 /**
@@ -35,13 +49,12 @@ class CallHistoryRepository(private val dbHelper: SafeCallDatabaseHelper) {
 
     fun insertCallRecord(draft: CallRecordDraft): Long {
         try {
-            val wasBlocked = draft.matchedEntryType != null
             val values = ContentValues().apply {
                 put("raw_number", draft.rawNumber)
                 put("normalized_number", draft.normalizedNumber)
                 put("direction", "INCOMING")
                 put("was_answered", if (draft.wasAnswered) 1 else 0)
-                put("was_blocked", if (wasBlocked) 1 else 0)
+                put("was_blocked", if (draft.wasBlocked) 1 else 0)
                 put("was_prompted", 0)
                 put("started_at", draft.startedAtEpochMillis)
                 put("ended_at", draft.endedAtEpochMillis)
@@ -51,6 +64,7 @@ class CallHistoryRepository(private val dbHelper: SafeCallDatabaseHelper) {
                     "matched_prefix_value",
                     if (draft.matchedEntryType == EntryType.PREFIX) draft.matchedPrefixValue else null,
                 )
+                put("decision_reason", draft.decisionReason?.name)
             }
             return dbHelper.writableDatabase.insertOrThrow("call_history", null, values)
         } catch (e: Exception) {

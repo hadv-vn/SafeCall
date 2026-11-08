@@ -16,12 +16,29 @@
   **đổi số thành Phase 8** để Phase 7 mới (FR-9/FR-10) chèn đúng vị trí theo thứ tự `estimate.md` (Phase 1.7
   nằm giữa Phase 1.6 và mục Cross-cutting) — không có Task/Deliverable nào khác bị đổi số ngoài việc đổi nhãn
   Phase 7 → Phase 8 này.
+- *Cập nhật (2026-11-07):* thêm **Phase 9** (FR-11/CONTACTS-PRIORITY, ánh xạ từ "Phase 1.9" mới trong
+  `estimate.md`), **Phase 10** (FR-12/BLOCK-TOGGLE, ánh xạ từ "Phase 1.10") và **Phase 11**
+  (FR-13/PERMISSION-CHECK, ánh xạ từ "Phase 1.11") — bổ sung cùng ngày trong `estimate.md`, theo cascade
+  SRS v6.1/HLD v1.3/LLD v1.4/ERD v1.3/UIUX v1.7/TestPlan v1.3. Phase 1-8 cũ **giữ nguyên không chỉnh sửa về nội
+  dung/effort** (Phase 8 ở đây là Phase Cross-cutting hiện có, đã chứa Deliverable 8.5 cho 3 task retroactive
+  2026-10-25 — KHÔNG phải một "Phase 1.8" riêng biệt nào khác). Phase "Cross-cutting" của tài liệu này (đang
+  đánh số Phase 8, sau 2 lần đổi số trước đó từ Phase 6 → Phase 7 → Phase 8) được **đổi số thành Phase 12** để
+  3 Phase mới (9/10/11) chèn đúng vị trí theo thứ tự `estimate.md` (Phase 1.9/1.10/1.11 trong `estimate.md`
+  nằm giữa mục "Phase 1.8 — Bổ sung retroactive" và mục "Cross-cutting"; trong WBS này, "Phase 1.8 retroactive"
+  tương ứng Deliverable 8.5/nay 12.5, không phải một Phase số riêng, nên 3 Phase mới chèn ngay trước Phase
+  Cross-cutting, tức trước Phase 8 cũ/Phase 12 mới) — không có Task/Deliverable nào khác bị đổi số ngoài việc
+  đổi nhãn Phase 8 → Phase 12 này.
+  Lưu ý: HLD v1.3 gọi 3 phase này là "Phase 1.8/1.9/1.10" (tự ghi nhận trùng số với "Phase 1.8" retroactive đã
+  có ở `estimate.md`/WBS, giao việc đổi số cho bước cascade estimate/WBS — xem HLD mục "Phase breakdown (bổ
+  sung)" và "Lưu ý đánh số phase"); `estimate.md` đã đặt lại thành "Phase 1.9/1.10/1.11", và WBS này ánh xạ
+  tiếp 1-1 thành **Phase 9/10/11**.
 - Tài liệu này CHỈ cấu trúc hóa lại dữ liệu đã có ở trên theo cây Phase → Deliverable → Task.
   Effort của mỗi Task là giá trị **likely-case nguyên bản** lấy từ `estimate.md`; **Deliverable là nhóm do
   agent này tạo ra để tổ chức các Task đã có theo thành phần kỹ thuật cùng nhóm** (không phải Task/Deliverable
   mới ngoài input — chỉ là cách gom nhóm các dòng đã có trong bảng ước lượng).
 - Không có cấp Subtask: input (`estimate.md`) không phân rã Task nào xuống mức chi tiết hơn, nên không tự
-  tách Subtask (kể cả 17 dòng việc của Phase 1.7, FR-9/FR-10 mới bổ sung).
+  tách Subtask (kể cả 17 dòng việc của Phase 1.7 và 35 dòng việc của Phase 1.9/1.10/1.11, FR-9/FR-10/FR-11/
+  FR-12/FR-13 mới bổ sung).
 
 Quy ước effort hiển thị mỗi Task: `Best / Likely / Worst (person-day)`. Số **in đậm** dùng trong tổng Phase/
 Deliverable là tổng cộng (sum) của các Task con theo đúng 3 cột, để tiện đối chiếu ngược với `estimate.md`.
@@ -254,9 +271,11 @@ dung Exit Criteria vào đây).
 
 | WBS | Task | Best | Likely | Worst |
 |---|---|---|---|---|
-| 6.1.1 | Spike/PoC chọn phương án hiển thị `RingingScamOverlay` (A - window overlay `SYSTEM_ALERT_WINDOW` vs B - full-screen-intent Notification), kiểm chứng độ tin cậy "đè đúng lúc" thực nghiệm trên 1-2 thiết bị trước khi code chính thức | 1 | 2 | 4 |
+| 6.1.1 | Spike/PoC chọn phương án hiển thị `RingingScamOverlay` (A - window overlay `SYSTEM_ALERT_WINDOW` vs B - full-screen-intent Notification), kiểm chứng độ tin cậy "đè đúng lúc" thực nghiệm trên 1-2 thiết bị trước khi code chính thức | ~~1~~ **0.5** | ~~2~~ **1** | ~~4~~ **2** |
 | 6.1.2 | `RingingScamOverlay` (Kotlin, MỚI - `show`/`onYesPressed`/`onNoPressed`/`dismiss`, tự đóng khi đổi trạng thái AC7, hiện lại nếu bị bỏ qua AC9, vòng đời độc lập Activity/Flutter engine) | 2 | 3.5 | 7 |
-| **Tổng 6.1** | | **3** | **5.5** | **11** |
+| **Tổng 6.1** | | ~~**3**~~ **2.5** | ~~**5.5**~~ **4.5** | ~~**11**~~ **9** |
+
+> **✍️ PM-edit (2026-11-06):** Task 6.1.1 hạ từ 1/2/4 xuống 0.5/1/2 — lý do và chi tiết ở `estimate.md` (ADR-007 đã chốt cứng Phương án A từ 2026-10-21, spike nay chỉ còn xác nhận triển khai, không còn ra quyết định kiến trúc).
 
 ### 6.2 CallMonitorService & prompt atomicity mở rộng (lõi FR-8)
 
@@ -300,9 +319,9 @@ dung Exit Criteria vào đây).
 | 6.6.2 | Cập nhật tài liệu kỹ thuật riêng cho FR-8 (ghi chú vận hành "điểm gọi endCall() duy nhất" theo ADR-005, ghi chú migration schema 2 phía, đối chiếu docs FR-8 vs code thật) | 0.25 | 0.5 | 1 |
 | **Tổng 6.6** | | **0.75** | **1.5** | **3** |
 
-**Tổng Phase 6 (6.1+6.2+6.3+6.4+6.5+6.6): Best 18.75 / Likely 37.5 / Worst 72** — khớp đúng với "Tổng Phase
-1.6" trong `estimate.md` (18.75 / 37.5 / 72, không có sai số cộng dồn như Phase 4). PERT-weighted theo
-`estimate.md` ≈ 40.1 person-day (không tính lại ở đây vì đó là phép tính tổng hợp không phải effort cấp Task).
+**Tổng Phase 6 (6.1+6.2+6.3+6.4+6.5+6.6): Best ~~18.75~~ 18.25 / Likely ~~37.5~~ 36.5 / Worst ~~72~~ 70** —
+khớp với "Tổng Phase 1.6" trong `estimate.md` sau PM-edit 2026-11-06 (18.25 / 36.5 / 70). PERT-weighted theo
+`estimate.md` ≈ ~~40.1~~ **39.0 person-day** (không tính lại ở đây vì đó là phép tính tổng hợp không phải effort cấp Task).
 
 Phụ thuộc nội bộ Phase 6 (suy luận kỹ thuật của agent, **chưa được input xác nhận trực tiếp** — ngoại trừ
 phụ thuộc cấp Phase đã nêu ở trên lấy trực tiếp từ HLD):
@@ -441,54 +460,296 @@ phụ thuộc cấp Phase đã nêu ở trên lấy trực tiếp từ HLD):
 
 ---
 
-## Phase 8 — Cross-cutting: System/E2E, Security, Compatibility, UAT, Tài liệu
+## Phase 9 — Cơ chế ưu tiên Danh bạ (FR-11/CONTACTS-PRIORITY, mới)
 
-Phụ thuộc: Input (`estimate.md`/HLD) không nêu rõ Phase 8 phải xong sau toàn bộ Phase 1-7; tuy nhiên các Task
-trong Phase 8 (system/E2E test theo FR-1/2/5/6/7, UAT, vòng fix tương thích) về bản chất kỹ thuật cần các
-chức năng tương ứng ở Phase 1-5 đã dựng xong để test — đây là suy luận kỹ thuật của agent, chưa được input
+Phụ thuộc (nguồn: HLD v1.3 "Phase breakdown (bổ sung)", mục "Phase 1.8" — HLD tự ghi nhận số "Phase 1.8" này
+trùng với "Phase 1.8" retroactive đã có ở `estimate.md`/WBS, không liên quan FR-11/12/13, nên ở `estimate.md`
+đã đặt lại thành "Phase 1.9" và ở WBS này ánh xạ tiếp thành Phase 9 — xem mục Nguồn): "Phụ thuộc: Phase 1.7
+phải hoàn thành trước (prefix matching FR-9 đã có — CONTACTS-PRIORITY là ngoại lệ trực tiếp của nó).
+`ContactsRepository`/`ContactsLookupModule` đã có sẵn từ cascade FR-5/FR-9, chỉ cần thêm người gọi mới." →
+ánh xạ sang số Phase của WBS này: HLD "Phase 1.7" = **Phase 7** của WBS này (FR-9/BLOCK-03, chặn theo đầu số).
+Phase 9 phụ thuộc **Phase 7** (phải hoàn thành trước — không làm trước Phase 9). Đây là phụ thuộc lấy trực
+tiếp từ HLD, không phải suy luận của agent.
+Milestone/tiêu chí hoàn thành: Chưa xác định (TestPlan v1.3 có Exit Criteria riêng cho FR-11/FR-12/FR-13 được
+`estimate.md` tham chiếu nhưng không trích dẫn chi tiết tiêu chí vào bảng ước lượng — không tự suy diễn nội
+dung Exit Criteria vào đây).
+
+### 9.1 Settings UI & Service + đọc cờ CONTACTS-PRIORITY (Dart + Kotlin)
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 9.1.1 | `SettingsScreen` (Dart, MỚI — 1 toggle CONTACTS-PRIORITY, mặc định BẬT, không dialog xác nhận khi đổi theo UIUX v1.7 Giả định 23) | 0.5 | 1 | 2 |
+| 9.1.2 | `SettingsService` (Dart, MỚI — `getFlags()`/`setFlag(flag, value)` CRUD đơn giản qua `sqflite` vào `blocklist_meta`) | 0.25 | 0.5 | 1 |
+| 9.1.3 | `BlocklistRepository.getSettingsFlags()` (Kotlin, MỚI) + data class `SettingsFlags` (đọc gộp cả 4 cờ cùng lúc trong 1 round-trip — 1 cờ dùng ngay ở Phase 9, 3 cờ còn lại viết sẵn, dùng ở Phase 10) | 0.5 | 1 | 1.5 |
+| **Tổng 9.1** | | **1.25** | **2.5** | **4.5** |
+
+### 9.2 CallScreeningService & CallMonitorService mở rộng (lõi FR-11)
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 9.2.1 | `CallScreeningService` — tái cấu trúc hot-path `screenSafely` thành pipeline nhiều bước (giữ đúng bước EXACT/PREFIX hiện có, thêm bước CONTACTS-PRIORITY: gọi `ContactsRepository.isNumberInContacts` in-process lần đầu từ class này, enum MỚI `ScreeningDecisionReason`, field `decisionReason` mới trên `ScreeningResult`) | 2 | 3.5 | 6 |
+| 9.2.2 | `RingingCallNumberHolder` (mở rộng field `decisionReason`) + `CallMonitorService.handleCallEnded()` (mang `decisionReason` từ nhánh CONTACTS_PRIORITY-allow tới `call_history`, đọc TRƯỚC `clear()`) | 0.5 | 1 | 2 |
+| **Tổng 9.2** | | **2.5** | **4.5** | **8** |
+
+### 9.3 Lịch sử cuộc gọi & schema migration mở rộng
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 9.3.1 | `CallHistoryRepository`/`CallRecordDraft` — thêm field `decisionReason` (tiếp nối `matchedEntryType`/`matchedPrefixValue`/`wasBlocked` đã có) | 0.25 | 0.5 | 1 |
+| 9.3.2 | Migration schema 2 phía (`SafeCallSchema.kt` + `safecall_schema.dart`): `blocklist_meta` +1 cột (`contacts_priority_enabled INTEGER NOT NULL DEFAULT 1`) + `call_history` +1 cột (`decision_reason TEXT`) kèm ĐỦ BỘ CHECK constraint cho TOÀN BỘ enum 4 giá trị (viết 1 lần, dùng ngay ở Phase 10 cho 3 giá trị `BLOCK_TOGGLE_*`, không cần sửa lại) | 1 | 2 | 3.5 |
+| **Tổng 9.3** | | **1.25** | **2.5** | **4.5** |
+
+### 9.4 Kiểm thử FR-11
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 9.4.1 | Unit test (`screenSafely` bước EXACT/PREFIX/CONTACTS-PRIORITY × ON/OFF × is-contact true/false; round-trip FR-11: thêm contact → gọi số thuộc 1 PREFIX đã chặn khớp đúng contact → xác nhận allow + `decisionReason=CONTACTS_PRIORITY` ở `call_history` SAU KHI cuộc gọi kết thúc) | 1 | 2 | 3.5 |
+| 9.4.2 | Integration test (CHECK constraint mới trên `call_history` thật — đặc biệt ràng buộc loại trừ `decision_reason`/`matched_entry_type` — và 1 cột mới trên `blocklist_meta` thật) | 1 | 2 | 3.5 |
+| 9.4.3 | **Regression chung cả 3 phase (9/10/11)**: viết test xác nhận `CallRecordDraft.wasBlocked` là field tường minh (ĐỌC CODE THẬT xác nhận lỗi suy diễn mà LLD v1.4 mô tả "phát hiện và sửa" ĐÃ ĐƯỢC FIX SẴN trong code hiện có — KHÔNG cần sửa code, CHỈ cần viết test regression + chạy lại bộ test cũ FR-1..FR-10 liên quan `call_history`) | 0.5 | 1 | 2 |
+| **Tổng 9.4** | | **2.5** | **5** | **9** |
+
+### 9.5 UAT & tài liệu kỹ thuật riêng FR-11
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 9.5.1 | UAT nhỏ riêng CONTACTS-PRIORITY (cảm nhận bật/tắt, round-trip với contact thật) | 0.25 | 0.5 | 1 |
+| 9.5.2 | Cập nhật tài liệu kỹ thuật riêng cho Phase 1.9 | 0.25 | 0.5 | 1 |
+| **Tổng 9.5** | | **0.5** | **1** | **2** |
+
+**Tổng Phase 9 (9.1+9.2+9.3+9.4+9.5): Best 8 / Likely 15.5 / Worst 28** — khớp đúng tuyệt đối với "Tổng Phase
+1.9" trong `estimate.md` (8 / 15.5 / 28), không có sai số cộng dồn (giống Phase 6/Phase 7, khác Phase 4).
+PERT-weighted theo `estimate.md` ≈ 16.3 person-day (không tính lại ở đây vì đó là phép tính tổng hợp không
+phải effort cấp Task).
+
+Phụ thuộc nội bộ Phase 9 (suy luận kỹ thuật của agent, **chưa được input xác nhận trực tiếp** — ngoại trừ
+phụ thuộc cấp Phase đã nêu ở trên lấy trực tiếp từ HLD):
+- 7.6.1 (schema migration Phase 7, tạo bảng `blocklist_meta`) phải xong trước 9.1.3 và 9.3.2 — cả hai Task này
+  đọc/viết cột trên bảng `blocklist_meta` đã được tạo ở Phase 7.
+- 7.2.2 (`CallScreeningService.onScreenCall` mở rộng EXACT/PREFIX, Phase 7) phải xong trước 9.2.1 —
+  `estimate.md` tự mô tả 9.2.1 "giữ đúng bước EXACT/PREFIX hiện có" trước khi thêm bước CONTACTS-PRIORITY.
+- 5.1.1 (`CallHistoryRepository` gốc, Phase 5) và 7.3.1 (mở rộng `matchedEntryType`/`matchedPrefixValue`,
+  Phase 7) phải xong trước 9.3.1 — `estimate.md` tự mô tả 9.3.1 "tiếp nối" các field đã có.
+- `ContactsRepository`/`ContactsLookupModule` (đã có sẵn từ cascade FR-5/FR-9 theo mô tả của `estimate.md`,
+  không gắn với một Task riêng cụ thể trong Phase 2/Phase 7 của WBS này) là tiền đề kỹ thuật cho 9.2.1 — ghi
+  nhận như bối cảnh, không ép vào một mã WBS cụ thể vì input không tách dòng việc riêng cho chính
+  `ContactsRepository`.
+- 9.1.1, 9.1.2, 9.1.3 nên xong trước 9.2.1 (pipeline đọc cờ `contacts_priority_enabled` qua `SettingsFlags`).
+- 9.2.1, 9.2.2 nên xong trước 9.3.1 (ghi `decisionReason` vào lịch sử cần nguồn giá trị từ pipeline/holder).
+- 9.1-9.3 nên xong trước 9.4 (test cần code tồn tại); 9.4 nên xong trước 9.5 (UAT sau test, theo nguyên tắc
+  chung — khác Phase 6, `estimate.md` không yêu cầu UAT Phase 9 chờ một vòng test thiết bị thật đa OEM cụ thể).
+
+---
+
+## Phase 10 — Bật/Tắt chế độ chặn nâng cao (FR-12/BLOCK-TOGGLE, mới, phụ thuộc Phase 9)
+
+Phụ thuộc (nguồn: HLD v1.3 "Phase breakdown (bổ sung)", mục "Phase 1.9" — ánh xạ: HLD "Phase 1.8" = Phase 9
+của WBS này, HLD "Phase 1.9" = Phase 10 của WBS này, HLD "Phase 1.10" = Phase 11 của WBS này): "Phụ thuộc:
+Phase 1.8 phải hoàn thành trước — tái dùng CÙNG màn hình Settings và CÙNG biến `isContact` đã tính ở bước 4.
+Không phụ thuộc Phase 1.10." → Phase 10 phụ thuộc **Phase 9** (phải hoàn thành trước — không làm trước Phase
+10); KHÔNG phụ thuộc **Phase 11**. Đây là phụ thuộc lấy trực tiếp từ HLD, không phải suy luận của agent.
+Milestone/tiêu chí hoàn thành: Chưa xác định.
+
+### 10.1 Settings UI & Service mở rộng (3 công tắc độc lập)
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 10.1.1 | `SettingsScreen` mở rộng (3 switch độc lập thêm vào CÙNG màn hình đã dựng ở Phase 9 — "Chặn tất cả số lạ"/"Chặn số ẩn danh"/"Chặn số quốc tế", mặc định TẮT; dòng cảnh báo text riêng cho "Chặn tất cả số lạ") | 0.5 | 1 | 2 |
+| 10.1.2 | `SettingsService` mở rộng (3 flag thêm, cùng pattern `setFlag` đã có) | 0.25 | 0.5 | 1 |
+| **Tổng 10.1** | | **0.75** | **1.5** | **3** |
+
+### 10.2 Normalizer & CallScreeningService mở rộng (lõi FR-12)
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 10.2.1 | `PhoneNumberNormalizer.isInternational` (Dart VÀ Kotlin, cả 2 phía — MỚI) | 0.5 | 1 | 1.5 |
+| 10.2.2 | `CallScreeningService` mở rộng — bước sớm số ẩn danh (`handlePresentation` RESTRICTED/UNKNOWN/PAYPHONE, đọc cờ `block_anonymous_enabled`, return NGAY dừng pipeline) + bước cuối tái dùng `isContact` đã tính ở Phase 9 (2 nhánh `BLOCK_TOGGLE_UNKNOWN`/`BLOCK_TOGGLE_INTERNATIONAL`) | 1.5 | 3 | 5.5 |
+| **Tổng 10.2** | | **2** | **4** | **7** |
+
+### 10.3 Schema migration mở rộng
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 10.3.1 | Migration schema 2 phía: `blocklist_meta` +3 cột (`block_unknown_enabled`/`block_anonymous_enabled`/`block_international_enabled`, mỗi cột `INTEGER NOT NULL DEFAULT 0`) — KHÔNG cần sửa lại CHECK `decision_reason` (đã viết đủ bộ cho cả 4 giá trị enum ở Phase 9) | 0.5 | 1 | 2 |
+| **Tổng 10.3** | | **0.5** | **1** | **2** |
+
+### 10.4 Kiểm thử FR-12
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 10.4.1 | Unit test (`screenSafely` đủ ma trận 6 bước × giá trị cờ × is-contact × is-international; nhánh ẩn danh short-circuit — mock/spy xác nhận `isBlockedExact`/`ContactsRepository` gọi = 0 lần) | 1.5 | 3 | 5 |
+| 10.4.2 | Integration test (3 cờ mới trên `blocklist_meta` thật; bộ dữ liệu biên chuẩn hóa quốc tế — input thô có/không dấu `+`; case số vừa lạ vừa quốc tế) | 1 | 2 | 3.5 |
+| 10.4.3 | Vòng test thiết bị thật đa OEM (TÁI DÙNG matrix 3 thiết bị đã có từ Phase 6 — 2 hạng mục MỚI: AC3/AC4 phát hiện ẩn danh/quốc tế qua Caller ID thật, AC6 khớp đồng thời 2 điều kiện) | 1 | 2.5 | 5 |
+| 10.4.4 | Vòng fix phát sinh nếu phát hiện `handlePresentation`/mã quốc gia KHÔNG đáng tin cậy trên 1+ OEM/carrier | 0 | 1.5 | 4 |
+| **Tổng 10.4** | | **3.5** | **9** | **17.5** |
+
+### 10.5 UAT & tài liệu kỹ thuật riêng FR-12
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 10.5.1 | UAT nhỏ riêng BLOCK-TOGGLE (cảm nhận 3 công tắc, dòng cảnh báo text "chặn số lạ") | 0.25 | 0.5 | 1 |
+| 10.5.2 | Cập nhật tài liệu kỹ thuật riêng cho Phase 1.10 | 0.25 | 0.5 | 1 |
+| **Tổng 10.5** | | **0.5** | **1** | **2** |
+
+**Tổng Phase 10 (10.1+10.2+10.3+10.4+10.5): Best 7.25 / Likely 16.5 / Worst 31.5** — khớp đúng tuyệt đối với
+"Tổng Phase 1.10" trong `estimate.md` (7.25 / 16.5 / 31.5), không có sai số cộng dồn. PERT-weighted theo
+`estimate.md` ≈ 17.5 person-day (không tính lại ở đây).
+
+Phụ thuộc nội bộ Phase 10 (suy luận kỹ thuật của agent, **chưa được input xác nhận trực tiếp** — ngoại trừ
+phụ thuộc cấp Phase đã nêu ở trên lấy trực tiếp từ HLD):
+- 9.1.1/9.1.2 (`SettingsScreen`/`SettingsService` gốc, Phase 9) phải xong trước 10.1.1/10.1.2 — HLD: "tái dùng
+  CÙNG màn hình Settings đã dựng" (gần trực tiếp từ input).
+- 9.2.1 (`CallScreeningService` pipeline, Phase 9) phải xong trước 10.2.2 — `estimate.md` tự mô tả 10.2.2
+  "Tiếp nối trực tiếp việc tái cấu trúc đã làm ở Phase 1.9 (ADDITIVE, không phải viết lại lần 2)" và tái dùng
+  biến `isContact` đã tính ở Phase 9 bước 4 (gần trực tiếp từ input/HLD).
+- 9.3.2 (migration Phase 9, viết đủ bộ CHECK `decision_reason` cho 4 giá trị enum) phải xong trước 10.3.1 —
+  `estimate.md` tự nêu 10.3.1 "KHÔNG cần sửa lại CHECK decision_reason (đã viết đủ bộ ở Phase 1.9)".
+- 7.1.1 (`PhoneNumberNormalizer` Dart, Phase 7) và 3.1.3 (`PhoneNumberNormalizer` Kotlin, Phase 3) phải xong
+  trước 10.2.1 — mở rộng trực tiếp cùng class 2 phía.
+- 6.5.3 (vòng test thiết bị thật đa OEM, Phase 6) phải xong trước 10.4.3 — `estimate.md` tự nêu 10.4.3 "TÁI
+  DÙNG matrix 3 thiết bị đã có từ Phase 1.6" (gần trực tiếp từ input).
+- 10.4.2 FAIL là điều kiện kích hoạt 10.4.4 — nguồn trực tiếp từ `estimate.md` ("best=0 nếu phát hiện đúng
+  ngay trên cả 3 thiết bị, không phát sinh gì thêm").
+- 10.1-10.3 nên xong trước 10.4; 10.4 nên xong trước 10.5.
+
+---
+
+## Phase 11 — Kiểm tra trạng thái Quyền định kỳ (FR-13/PERMISSION-CHECK, mới, độc lập)
+
+Phụ thuộc (nguồn: HLD v1.3 "Phase breakdown (bổ sung)", mục "Phase 1.10"): "Phụ thuộc: KHÔNG phụ thuộc Phase
+1.8/1.9 — hoàn toàn độc lập về runtime. Phụ thuộc gián tiếp vào `PermissionsModule`/`RoleModule`/
+`PermissionKeys` đã có (Phase 0) cho DANH SÁCH quyền cần kiểm tra." → ánh xạ sang số Phase của WBS này: Phase
+11 KHÔNG phụ thuộc **Phase 9**/**Phase 10** (có thể chạy song song, chèn/test độc lập); phụ thuộc gián tiếp
+**Phase 1** (nơi `PermissionsModule`/`RoleModule`/`PermissionKeys` được dựng — HLD gọi nền tảng này là "Phase
+0", WBS này không có "Phase 0" nên việc ánh xạ "Phase 0" → **Phase 1** là suy luận ánh xạ của agent, vì HLD
+không định nghĩa rõ số phase này tương ứng số nào trong WBS). Phần "KHÔNG phụ thuộc Phase 1.8/1.9" lấy trực
+tiếp từ HLD; phần ánh xạ "Phase 0" là suy luận của agent, cần xác nhận lại nếu cần chính xác tuyệt đối.
+Milestone/tiêu chí hoàn thành: Chưa xác định.
+
+### 11.1 Refactor PermissionStatusChecker (tách khỏi PermissionsModule/RoleModule)
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 11.1.1 | `PermissionStatusChecker` (Kotlin, MỚI — tách object `isGranted`/`isRoleHeld`/`areNotificationsEffectivelyEnabled` từ `PermissionsModule`/`RoleModule`) + refactor `PermissionsModule.statusOf()`/`RoleModule.isRoleHeld()` gọi lại qua object mới | 1 | 2 | 3.5 |
+| **Tổng 11.1** | | **1** | **2** | **3.5** |
+
+### 11.2 Hạ tầng WorkManager & Application (mới)
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 11.2.1 | Gradle dependency `androidx.work:work-runtime-ktx` (`android/app/build.gradle`) | 0.1 | 0.25 | 0.5 |
+| 11.2.2 | `SafeCallApplication` (Kotlin, MỚI — extends `android.app.Application` thuần, `onCreate()` tạo notification channel + enqueue `PeriodicWorkRequest` 24h `KEEP`) + sửa `AndroidManifest.xml` (`android:name="${applicationName}"` → `.SafeCallApplication`) | 0.5 | 1 | 2 |
+| 11.2.3 | `PermissionCheckWorker` (Kotlin, MỚI — `androidx.work.Worker`, `doWork()` lặp 6 `PermissionCheckStep`, `notify()`/`cancel()` theo `notificationId` cố định 9001-9006, `PendingIntent` `FLAG_IMMUTABLE` kèm `EXTRA_PERMISSION_STEP_ID`) | 1.5 | 3 | 5 |
+| 11.2.4 | 6 nội dung notification (title/text theo UIUX v1.7 đã viết sẵn — chỉ còn việc implement) | 0.25 | 0.5 | 1 |
+| **Tổng 11.2** | | **2.35** | **4.75** | **8.5** |
+
+### 11.3 Cơ chế resume đúng bước (MainActivity/RootDecider)
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 11.3.1 | Cơ chế resume đúng bước cho 2 quyền tùy chọn (`MainActivity` thêm `EXTRA_PERMISSION_STEP_ID` + override `onNewIntent`; case mới `"getInitialPermissionStepId"` trên `PERMISSIONS_CHANNEL`; `PermissionsBridge.getInitialPermissionStepId()`; `RootDecider` gọi check này ƯU TIÊN TRƯỚC `_runResumeCheck()` mandatory-only hiện có, cả cold start và warm resume; validate `stepId` lạ từ Intent `exported=true` không tin tưởng mù quáng) | 1.5 | 3 | 5.5 |
+| **Tổng 11.3** | | **1.5** | **3** | **5.5** |
+
+### 11.4 Kiểm thử FR-13
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 11.4.1 | Unit test (`PermissionStatusChecker` với `Context` giả; REGRESSION xác nhận `PermissionsModule`/`RoleModule` KHÔNG đổi hành vi sau refactor; `PermissionCheckWorker.doWork` mock thiếu 1/6/cả 6 quyền; "quyền cấp lại ở lần sau → cancel, không post lại") | 1.5 | 3 | 5 |
+| 11.4.2 | Integration test (tap notification → `MainActivity.onNewIntent` → `getInitialPermissionStepId()` trả đúng `stepId` 1 lần, lần đọc thứ 2 trả `null`; ép chạy Worker qua `WorkManagerTestInitHelper` CHỈ cho test LOGIC, không phải độ tin cậy lịch trình thật) | 1 | 2 | 3.5 |
+| 11.4.3 | Vòng test thiết bị thật đa OEM (TÁI DÙNG matrix 3 thiết bị Phase 6 — độ trễ `WorkManager` dưới Doze/App Standby THẬT, tối thiểu 1 lượt màn hình tắt + không sạc + không di chuyển vài giờ liên tục MỖI thiết bị, kết hợp thu hồi 1 quyền qua Cài đặt hệ thống trước khi vào Doze) | 1.5 | 3 | 6 |
+| 11.4.4 | Vòng fix phát sinh nếu `WorkManager` không chạy đáng tin cậy trên 1+ OEM (ví dụ OEM tùy biến diệt tiến trình nền quá mức) | 0 | 2 | 5 |
+| **Tổng 11.4** | | **4** | **10** | **19.5** |
+
+### 11.5 UAT & tài liệu kỹ thuật riêng FR-13
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 11.5.1 | UAT nhỏ riêng PERMISSION-CHECK (cảm nhận thông báo nhắc cấp quyền, điều hướng đúng bước khi tap) | 0.25 | 0.5 | 1 |
+| 11.5.2 | Cập nhật tài liệu kỹ thuật riêng cho Phase 1.11 | 0.25 | 0.5 | 1 |
+| **Tổng 11.5** | | **0.5** | **1** | **2** |
+
+**Tổng Phase 11 (11.1+11.2+11.3+11.4+11.5): Best 9.35 / Likely 20.75 / Worst 39** — khớp đúng tuyệt đối với
+"Tổng Phase 1.11" trong `estimate.md` (9.35 / 20.75 / 39), không có sai số cộng dồn. PERT-weighted theo
+`estimate.md` ≈ 21.9 person-day (không tính lại ở đây).
+
+Phụ thuộc nội bộ Phase 11 (suy luận kỹ thuật của agent, **chưa được input xác nhận trực tiếp** — ngoại trừ
+phụ thuộc cấp Phase đã nêu ở trên, phần "KHÔNG phụ thuộc Phase 9/10" lấy trực tiếp từ HLD):
+- 1.1.2 (`PermissionsModule`/`RoleModule` gốc, Phase 1) phải xong trước 11.1.1 — 11.1.1 refactor tách object từ
+  2 class đã có ở Phase 1.
+- 11.1.1 (`PermissionStatusChecker`) phải xong trước 11.2.3 (`PermissionCheckWorker.doWork` dùng checker mới
+  để lặp qua 6 `PermissionCheckStep`).
+- 11.2.2 (`SafeCallApplication`, sửa Manifest) phải xong trước 11.2.3 — `onCreate()` của Application là nơi
+  `enqueue` `PeriodicWorkRequest` cho Worker.
+- 1.1.1 (scaffolding, Phase 1) và 1.2.1 (`OnboardingScreen`, Phase 1) phải xong trước 11.3.1 — `estimate.md`
+  xác nhận cơ chế resume hiện có (`MainActivity`/`RootDecider`) được dựng từ Phase 1, 11.3.1 mở rộng trực tiếp
+  cơ chế đó.
+- 11.1-11.3 nên xong trước 11.4 (test cần code tồn tại); 11.4 nên xong trước 11.5.
+- Phase 11 không phụ thuộc Phase 9/10 — có thể triển khai và test song song với 2 Phase đó (trực tiếp từ HLD:
+  "độc lập, có thể chạy song song với Phase 1.8/1.9").
+
+---
+
+## Phase 12 — Cross-cutting: System/E2E, Security, Compatibility, UAT, Tài liệu
+
+Phụ thuộc: Input (`estimate.md`/HLD) không nêu rõ Phase 12 phải xong sau toàn bộ Phase 1-11; tuy nhiên các
+Task trong Phase 12 (system/E2E test theo FR-1/2/5/6/7, UAT, vòng fix tương thích) về bản chất kỹ thuật cần
+các chức năng tương ứng ở Phase 1-5 đã dựng xong để test — đây là suy luận kỹ thuật của agent, chưa được input
 xác nhận trực tiếp theo từng Task cụ thể. `estimate.md` không có dòng việc tương ứng dạng "Cross-cutting cho
-FR-8" hoặc "Cross-cutting cho FR-9/FR-10" tách riêng (các Task cross-cutting của FR-8 và FR-9/FR-10 — test
-thiết bị thật, UAT, tài liệu — đã nằm trong Phase 6 và Phase 7 ở trên, không lặp lại tại đây).
+FR-8", "Cross-cutting cho FR-9/FR-10" hay "Cross-cutting cho FR-11/FR-12/FR-13" tách riêng (các Task
+cross-cutting của FR-8, FR-9/FR-10 và FR-11/FR-12/FR-13 — test thiết bị thật, UAT, tài liệu — đã nằm trong
+Phase 6, Phase 7 và Phase 9/10/11 ở trên, không lặp lại tại đây).
 Milestone/tiêu chí hoàn thành: Chưa xác định (Test Plan có "Exit Criteria" được `estimate.md` tham chiếu
 nhưng không trích dẫn chi tiết tiêu chí vào bảng ước lượng — không tự suy diễn nội dung Exit Criteria vào đây).
 
-### 8.1 Kiểm thử System/E2E & thiết bị thật
+### 12.1 Kiểm thử System/E2E & thiết bị thật
 
 | WBS | Task | Best | Likely | Worst |
 |---|---|---|---|---|
-| 8.1.1 | Script System/E2E (adb emu gsm call/accept/cancel trên 2 API level, kịch bản đủ FR-1/2/5/6/7) | 2 | 4 | 7 |
-| 8.1.2 | Vòng test trên thiết bị thật + SIM thật (FR-1/FR-2) + vòng fix phát sinh | 1 | 2 | 4 |
-| **Tổng 8.1** | | **3** | **6** | **11** |
+| 12.1.1 | Script System/E2E (adb emu gsm call/accept/cancel trên 2 API level, kịch bản đủ FR-1/2/5/6/7) | 2 | 4 | 7 |
+| 12.1.2 | Vòng test trên thiết bị thật + SIM thật (FR-1/FR-2) + vòng fix phát sinh | 1 | 2 | 4 |
+| **Tổng 12.1** | | **3** | **6** | **11** |
 
-### 8.2 Bảo mật & tương thích
-
-| WBS | Task | Best | Likely | Worst |
-|---|---|---|---|---|
-| 8.2.1 | Security cơ bản (loại trừ allowBackup/auto-backup, xóa dữ liệu khi gỡ app, sanity SQL injection) | 0.5 | 1 | 2 |
-| 8.2.2 | Vòng fix tương thích API 29 vs 31+ (ví dụ khác biệt POST_NOTIFICATIONS runtime từ API 33) | 1 | 2 | 4 |
-| **Tổng 8.2** | | **1.5** | **3** | **6** |
-
-### 8.3 UAT
+### 12.2 Bảo mật & tương thích
 
 | WBS | Task | Best | Likely | Worst |
 |---|---|---|---|---|
-| 8.3.1 | UAT (điều phối + fix phản hồi mức blocker) | 1 | 2 | 4 |
-| **Tổng 8.3** | | **1** | **2** | **4** |
+| 12.2.1 | Security cơ bản (loại trừ allowBackup/auto-backup, xóa dữ liệu khi gỡ app, sanity SQL injection) | 0.5 | 1 | 2 |
+| 12.2.2 | Vòng fix tương thích API 29 vs 31+ (ví dụ khác biệt POST_NOTIFICATIONS runtime từ API 33) | 1 | 2 | 4 |
+| **Tổng 12.2** | | **1.5** | **3** | **6** |
 
-### 8.4 Tài liệu kỹ thuật
+### 12.3 UAT
 
 | WBS | Task | Best | Likely | Worst |
 |---|---|---|---|---|
-| 8.4.1 | Cập nhật tài liệu kỹ thuật (README dev setup, ghi chú vận hành DDL 2 phía, đối chiếu docs vs code thật) | 0.5 | 1 | 2 |
-| **Tổng 8.4** | | **0.5** | **1** | **2** |
+| 12.3.1 | UAT (điều phối + fix phản hồi mức blocker) | 1 | 2 | 4 |
+| **Tổng 12.3** | | **1** | **2** | **4** |
 
-**Tổng Phase 8 (8.1+8.2+8.3+8.4): Best 6 / Likely 12 / Worst 23.**
-Lưu ý cách gộp: `estimate.md` tách dòng "Cập nhật tài liệu kỹ thuật" (8.4.1) RA NGOÀI dòng "Tổng Cross-cutting"
-(5.5 / 11 / 21, chỉ gồm 8.1-8.3). WBS này gộp cả 8.4 vào chung Phase 8 vì cùng tính chất cross-cutting —
-không phải khác biệt số liệu, chỉ là cách trình bày khác với bảng gốc. Tổng Phase 8 (có 8.4) = Tổng
+### 12.4 Tài liệu kỹ thuật
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 12.4.1 | Cập nhật tài liệu kỹ thuật (README dev setup, ghi chú vận hành DDL 2 phía, đối chiếu docs vs code thật) | 0.5 | 1 | 2 |
+| **Tổng 12.4** | | **0.5** | **1** | **2** |
+
+### 12.5 Release signing & governance bổ sung (✍️ PM-edit, 2026-11-06 — ghi nhận hồi tố việc đã làm thật 2026-10-25)
+
+> Nguồn: `DELEGATION-MAP-SAFECALL.md` (3 dòng "Bổ sung 2026-10-25") + `estimate.md` mục "Phase 1.8". 3 task này
+> đã được thực hiện thật ngày 2026-10-25 nhưng bị bỏ sót khỏi WBS gốc — rubric EX-02 chấm "Fail" vì thiếu bằng
+> chứng PM bắt được gap này; PM (hadv-vn) xác nhận bổ sung trực tiếp vào đây ngày 2026-11-06.
+
+| WBS | Task | Best | Likely | Worst |
+|---|---|---|---|---|
+| 12.5.1 | Tạo keystore + điền `android/key.properties` (Human-do, giá trị secret thật) | 0.1 | 0.25 | 0.5 |
+| 12.5.2 | Cấu hình gradle đọc `signingConfigs.release` từ `key.properties` (AI-do) | 0.1 | 0.25 | 0.5 |
+| 12.5.3 | Golden-file test `PhoneNumberNormalizer` Dart↔Kotlin (58 case, đóng Risk R9) | 0.5 | 1 | 2 |
+| **Tổng 12.5** | | **0.7** | **1.5** | **3** |
+
+**Tổng Phase 12 (12.1+12.2+12.3+12.4+12.5): Best ~~6~~ 6.7 / Likely ~~12~~ 13.5 / Worst ~~23~~ 26.**
+Lưu ý cách gộp: `estimate.md` tách dòng "Cập nhật tài liệu kỹ thuật" (12.4.1) RA NGOÀI dòng "Tổng Cross-cutting"
+(5.5 / 11 / 21, chỉ gồm 12.1-12.3). WBS này gộp cả 12.4 vào chung Phase 12 vì cùng tính chất cross-cutting —
+không phải khác biệt số liệu, chỉ là cách trình bày khác với bảng gốc. Tổng Phase 12 (có 12.4) = Tổng
 Cross-cutting gốc + dòng Docs gốc = (5.5+0.5) / (11+1) / (21+2) = 6 / 12 / 23 — khớp đúng. (Phase này lần lượt
-được đánh số "Phase 6" trước bản cập nhật 2026-10-21 lần 1, rồi "Phase 7" sau bản cập nhật lần 1, và nay là
-"Phase 8" sau bản cập nhật lần 2 — xem ghi chú đổi số ở mục "Nguồn".)
+được đánh số "Phase 6" trước bản cập nhật 2026-10-21 lần 1, rồi "Phase 7" sau bản cập nhật lần 1, "Phase 8"
+sau bản cập nhật lần 2, và nay là "Phase 12" sau bản cập nhật 2026-11-07 — xem ghi chú đổi số ở mục "Nguồn".)
 
 ---
 
@@ -501,20 +762,26 @@ Cross-cutting gốc + dòng Docs gốc = (5.5+0.5) / (11+1) / (21+2) = 6 / 12 / 
 | 3 — Chặn real-time | 3.5 | 7 | 12 |
 | 4 — Phát hiện + prompt | 13.5 | 23.5 | 40 |
 | 5 — Lịch sử cuộc gọi | 3 | 5.5 | 8.5 |
-| 6 — Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi (FR-8, mới) | 18.75 | 37.5 | 72 |
+| 6 — Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi (FR-8, mới) | ~~18.75~~ 18.25 | ~~37.5~~ 36.5 | ~~72~~ 70 |
 | 7 — Chặn theo đầu số + Export/Import blocklist (FR-9/FR-10, mới) | 18.25 | 38 | 70.5 |
-| 8 — Cross-cutting | 6 | 12 | 23 |
-| **TỔNG** | **74.5** | **143.5** | **259.5** |
+| 9 — Cơ chế ưu tiên Danh bạ (FR-11, mới) | 8 | 15.5 | 28 |
+| 10 — Bật/Tắt chế độ chặn nâng cao (FR-12, mới) | 7.25 | 16.5 | 31.5 |
+| 11 — Kiểm tra trạng thái Quyền định kỳ (FR-13, mới) | 9.35 | 20.75 | 39 |
+| 12 — Cross-cutting + Release signing (12.5 PM-edit 2026-11-06) | ~~6~~ 6.7 | ~~12~~ 13.5 | ~~23~~ 26 |
+| **TỔNG** | ~~**74.5**~~ **99.3** | ~~**143.5**~~ **196.75** | ~~**259.5**~~ **359** |
 
-So với `estimate.md` ("TỔNG CỘNG TOÀN BỘ PHASE 1 (bao gồm Phase 1.6 và Phase 1.7)": Best 75 / Likely 143.5 /
-Worst 260): Likely khớp đúng (143.5). Best lệch 0.5 (74.5 so với 75) và Worst lệch 0.5 (259.5 so với 260) —
-**cùng nguồn gốc với sai số 0.5/0.5 đã nêu ở Phase 4 trước khi thêm Phase 6/Phase 7** (xem mục Bất thường):
-cả Phase 6 (FR-8) và Phase 7 (FR-9/FR-10) tự thân đều khớp đúng tuyệt đối với dòng tổng tương ứng của
-`estimate.md` (18.75/37.5/72 và 18.25/38/70.5), không phát sinh sai số mới — độ lệch 0.5/0.5 ở dòng TỔNG này
-hoàn toàn là độ lệch cộng dồn cũ từ Phase 4, không phải do Phase 7 hoặc việc đổi số Phase 8 gây ra.
-PERT-weighted ≈ 151.5 person-day (theo `estimate.md`, không tính lại ở đây vì đó là một phép tính tổng hợp
-không phải effort cấp Task; trước khi có Phase 6, PERT-weighted cho Phase 1-5+8 ≈ 71 person-day; trước khi
-có Phase 7, PERT-weighted cho Phase 1-6+8 ≈ 111.4 person-day — cả hai theo `estimate.md`).
+So với `estimate.md` ("TỔNG CỘNG TOÀN BỘ PHASE 1 (bao gồm Phase 1.6, 1.7, 1.8, 1.9, 1.10, 1.11)" sau bổ sung
+2026-11-07: Best 99.8 / Likely 196.75 / Worst 359.5): Likely khớp đúng (196.75). Best lệch 0.5 (99.3 so với
+99.8) và Worst lệch 0.5 (359 so với 359.5) — **vẫn cùng nguồn gốc với sai số cộng dồn 0.5/0.5 đã nêu ở Phase 4
+từ các lần cập nhật trước** (xem mục Bất thường), KHÔNG phải do việc thêm Phase 9/10/11 hoặc đổi số Phase 8
+→ 12 gây ra — cả hai Phase 9, Phase 10 và Phase 11 tự thân đều khớp đúng tuyệt đối với `estimate.md` (không
+có sai số cộng dồn riêng, giống Phase 6/Phase 7).
+PERT-weighted ≈ **207.55 person-day** (tính trực tiếp từ dòng TỔNG của WBS này: (99.3+4×196.75+359)/6 =
+1245.3/6 = 207.55 — khác biệt nhỏ so với 207.7 của `estimate.md` do cùng sai số cộng dồn 0.5/0.5 nêu trên,
+không phải sai số tính PERT mới; trước khi có Phase 6, PERT-weighted cho Phase 1-5+Cross-cutting ≈ 71
+person-day; trước khi có Phase 7, ≈ 111.4 person-day; trước PM-edit 2026-11-06, ≈ 151.5/151.4 person-day;
+trước khi có Phase 9/10/11 (tức dòng TỔNG 74.7/144/260.5 của bản trước) ≈ 151.9 person-day — tất cả theo
+`estimate.md`/WBS tương ứng).
 
 ---
 
@@ -533,18 +800,27 @@ có Phase 7, PERT-weighted cho Phase 1-6+8 ≈ 111.4 person-day — cả hai the
   (FR-9/FR-10)**: lựa chọn plugin thật cho Share Sheet/file picker và review quyền của plugin đó (LLD v1.3 tự
   ghi "NGOÀI PHẠM VI LLD", cần `security-auditor` khi có code thật); effort UI cập nhật `CallHistoryScreen`
   cho 2 badge mới `BLOCKED_REALTIME_EXACT`/`BLOCKED_REALTIME_PREFIX` (UIUX v1.3 tự ghi nhận CHƯA cascade,
-  ngoài phạm vi Task 7.3.1 — xem mục Ngoài phạm vi) (nguồn: `estimate.md`).
+  ngoài phạm vi Task 7.3.1 — xem mục Ngoài phạm vi); **riêng Phase 9/10 (FR-11/FR-12)**: cập nhật
+  `CallHistoryScreen`/`CallHistoryService.deriveDisplayStatus` để hiển thị các `decisionReason` mới
+  (`CONTACTS_PRIORITY`/`BLOCK_TOGGLE_UNKNOWN`/`BLOCK_TOGGLE_ANONYMOUS`/`BLOCK_TOGGLE_INTERNATIONAL`) — HLD v1.3
+  và TestPlan v1.3 tự xác nhận NGOÀI PHẠM VI lần cập nhật này (cùng loại gap đã có từ Phase 7, vẫn CHƯA đóng);
+  xác nhận khả thi kỹ thuật phát hiện số ẩn danh/quốc tế đáng tin cậy (SRS 7.1, cần `system-architect`/
+  `low-level-designer` xác nhận riêng cho Task 10.2.2); thiết kế nội dung copy UI/notification cho Phase 11
+  (UIUX v1.7 đã viết sẵn, chỉ còn effort implement đã tính trong Task 11.2.4) (nguồn: `estimate.md`).
 - Không có cấp Subtask trong tài liệu này vì `estimate.md` không phân rã Task nào xuống mức chi tiết hơn,
-  kể cả 14 dòng việc của Phase 1.6 (FR-8) và 17 dòng việc của Phase 1.7 (FR-9/FR-10) mới bổ sung.
-- Deliverable (1.1, 1.2, 2.1, 2.2..., 6.1-6.6..., 7.1-7.8...) là nhóm do agent này tạo để tổ chức các Task đã
-  có theo thành phần kỹ thuật cùng nhóm (ví dụ "UI", "Service/Logic", "Kiểm thử") — không phải hạng mục công
-  việc mới, chỉ là cách gom nhóm trình bày. Với Phase 6, 14 dòng việc của `estimate.md` được gom thành 6
-  Deliverable (6.1 Spike/PoC & overlay, 6.2 CallMonitorService & prompt atomicity, 6.3 Quyền & Onboarding, 6.4
-  Lịch sử cuộc gọi & schema migration, 6.5 Kiểm thử, 6.6 UAT & tài liệu). Với Phase 7, 17 dòng việc của
-  `estimate.md` được gom thành 8 Deliverable (7.1 Blocklist CRUD & normalizer mở rộng, 7.2 Chặn real-time theo
-  đầu số, 7.3 Lịch sử cuộc gọi mở rộng, 7.4 Export/Import blocklist, 7.5 UI blocklist mở rộng, 7.6 Schema
-  migration mở rộng, 7.7 Kiểm thử, 7.8 UAT & tài liệu) — cả hai theo cùng nguyên tắc nhóm đã áp dụng cho
-  Phase 1-5.
+  kể cả 14 dòng việc của Phase 1.6 (FR-8), 17 dòng việc của Phase 1.7 (FR-9/FR-10) và 35 dòng việc của Phase
+  1.9/1.10/1.11 (FR-11/FR-12/FR-13) mới bổ sung.
+- Deliverable (1.1, 1.2, 2.1, 2.2..., 6.1-6.6..., 7.1-7.8..., 9.1-9.5..., 10.1-10.5..., 11.1-11.5...) là nhóm
+  do agent này tạo để tổ chức các Task đã có theo thành phần kỹ thuật cùng nhóm (ví dụ "UI", "Service/Logic",
+  "Kiểm thử") — không phải hạng mục công việc mới, chỉ là cách gom nhóm trình bày. Với Phase 6, 14 dòng việc
+  của `estimate.md` được gom thành 6 Deliverable (6.1 Spike/PoC & overlay, 6.2 CallMonitorService & prompt
+  atomicity, 6.3 Quyền & Onboarding, 6.4 Lịch sử cuộc gọi & schema migration, 6.5 Kiểm thử, 6.6 UAT & tài
+  liệu). Với Phase 7, 17 dòng việc của `estimate.md` được gom thành 8 Deliverable (7.1 Blocklist CRUD &
+  normalizer mở rộng, 7.2 Chặn real-time theo đầu số, 7.3 Lịch sử cuộc gọi mở rộng, 7.4 Export/Import
+  blocklist, 7.5 UI blocklist mở rộng, 7.6 Schema migration mở rộng, 7.7 Kiểm thử, 7.8 UAT & tài liệu). Với
+  Phase 9 (12 dòng việc), Phase 10 (11 dòng việc) và Phase 11 (12 dòng việc), mỗi Phase được gom thành 5
+  Deliverable theo cùng khuôn mẫu (Settings/Service hoặc hạ tầng MỚI → lõi hot-path mở rộng → schema/lịch sử
+  hoặc resume → Kiểm thử → UAT & tài liệu) — tất cả theo cùng nguyên tắc nhóm đã áp dụng cho Phase 1-5.
 - Mọi phụ thuộc không trích trực tiếp từ HLD "Phase breakdown" hoặc Căn cứ của `estimate.md` đều được gắn
   nhãn rõ "suy luận kỹ thuật của agent, chưa được input xác nhận trực tiếp" — cần người dùng/system-architect
   xác nhận lại trước khi dùng để lập lịch thực.
@@ -589,6 +865,27 @@ có Phase 7, PERT-weighted cho Phase 1-6+8 ≈ 111.4 person-day — cả hai the
     đây (ERD v1.2 tự đánh giá "thấp về xác suất" nhưng "có thực về lý thuyết").
   - Rủi ro lệch output giữa 2 cài đặt `PhoneNumberNormalizer` độc lập (đã nêu ở Task 2.2.2/3.1.3) lan sang
     Task 7.1.1 vì nay còn phải nhất quán cả ngưỡng PREFIX (4 ký tự), không chỉ định dạng EXACT như trước.
+  - **Task 9.2.1, 10.2.2 (`CallScreeningService.screenSafely` thiết kế lại 2 lần liên tiếp)**: TestPlan v1.3
+    Exit Criteria tự xác nhận pipeline "bị THIẾT KẾ LẠI TOÀN BỘ, không phải chỉ thêm nhánh" — hot-path nhạy
+    cảm nhất của hệ thống (bắt buộc fail-open), sửa 2 lần liên tiếp trên CÙNG method ở Phase 9 rồi Phase 10 —
+    đẩy rộng worst-case cả hai Task, bắt buộc test lại toàn bộ AC1-AC9 của FR-1.
+  - **Task 10.2.2, 10.4.4 (phát hiện số ẩn danh/mã quốc gia qua Telecom API)**: SRS 7.1 câu hỏi mở "độ tin cậy
+    phát hiện qua `handlePresentation`/Telecom API... cần `system-architect`/`low-level-designer` xác nhận khả
+    thi" CHƯA được đóng tại thời điểm ước lượng này — đây là lý do chính khiến tỷ lệ worst/best của Phase 10
+    (31.5/7.25 ≈ 4.3x) rộng nhất trong 3 Phase 9/10/11, theo đánh giá của chính `estimate.md`.
+  - **Task 11.1.1 (refactor `PermissionStatusChecker` tách khỏi `PermissionsModule`/`RoleModule`)**: sửa code
+    ĐANG HOẠT ĐỘNG, đã qua nhiều gate A+ theo governance — rủi ro regression dù LLD v1.4 xác nhận "không đổi
+    hành vi/tri-state"; bắt buộc có dòng test regression riêng (Task 11.4.1), không coi là tự động đúng chỉ vì
+    "chỉ là refactor".
+  - **Task 11.4.3, 11.4.4 (`WorkManager` lần đầu dùng trong dự án, độ tin cậy lịch trình 24h dưới Doze/App
+    Standby phụ thuộc OEM)**: MIUI/ColorOS tùy biến diệt tiến trình nền phổ biến — TestPlan v1.3 không yêu cầu
+    "đúng giờ tuyệt đối" nhưng vẫn cần 1 lượt test thật tốn thời gian thực (vài giờ/thiết bị); đây là lý do
+    chính khiến worst-case của 2 Task này (6 và 5) cao gần gấp đôi likely-case tương ứng.
+  - Không có lịch sử git/code thực tế của chính team này để hiệu chỉnh tốc độ person-day vẫn áp dụng cho Phase
+    9/10/11 — khác với Phase 6/7, `estimate.md` tự xác nhận ĐÃ ĐỌC code thật trước khi ước lượng 3 Phase này
+    (xem mục "Dữ liệu đã khảo sát" của `estimate.md`), nên mức tin cậy ở mức Trung bình (cao hơn Phase 6/7)
+    nhưng vẫn thấp hơn mức "Cao" vì lịch sử git của repo này (toàn bộ Phase 1.1-1.7 commit trong 1 commit duy
+    nhất, cách nhau 2 ngày) không phản ánh nhịp người code thủ công, không dùng để hiệu chỉnh tốc độ được.
 
 ## Bất thường phát hiện
 
@@ -601,8 +898,8 @@ có Phase 7, PERT-weighted cho Phase 1-6+8 ≈ 111.4 person-day — cả hai the
   của `estimate.md` (38 / 68 / 117.5): cộng lại từ tất cả subtotal Phase chính xác cho 37.5 / 68 / 117.
   Không tự sửa lại `estimate.md` — chỉ nêu rõ bất thường này để người dùng/`project-estimator` đối chiếu lại.
 - `estimate.md` tách dòng "Cập nhật tài liệu kỹ thuật" ra ngoài subtotal "Tổng Cross-cutting" (chỉ gồm 4 dòng
-  đầu), trong khi WBS này gộp chung vào Phase 8 (Deliverable 8.4) vì cùng bản chất cross-cutting — không phải
-  sai số, chỉ là khác cách trình bày; đã ghi rõ ở mục Phase 8.
+  đầu), trong khi WBS này gộp chung vào Phase 12 (Deliverable 12.4) vì cùng bản chất cross-cutting — không
+  phải sai số, chỉ là khác cách trình bày; đã ghi rõ ở mục Phase 12.
 - Rủi ro thiết kế chưa chốt: HLD tự xác nhận cơ chế dual-implementation API 29 vs 31+ cho TelephonyCallback
   (ảnh hưởng Task 4.1.1, lan sang Task 6.2.1) và cơ chế background reliability cho NFR-4 chưa được
   `low-level-designer` quyết định — đây là khoảng trống thiết kế đã biết, không phải lỗi của bảng ước lượng,
@@ -612,11 +909,20 @@ có Phase 7, PERT-weighted cho Phase 1-6+8 ≈ 111.4 person-day — cả hai the
   trên), ở đây không phát hiện bất thường số liệu.
 - **Phase 7 (FR-9/FR-10) cũng không có sai số cộng dồn**: 17 dòng Task cộng trực tiếp cho đúng Best 18.25 /
   Likely 38 / Worst 70.5, khớp tuyệt đối với dòng "Tổng Phase 1.7" mà `estimate.md` tự ghi — giống Phase 6,
-  khác Phase 4. Tuy nhiên vì Phase 8 (Cross-cutting, chịu ảnh hưởng gián tiếp từ sai số 0.5/0.5 đã có từ
-  trước ở Phase 4) vẫn nằm trong dòng TỔNG toàn Phase 1 cùng Phase 6/Phase 7, dòng TỔNG cuối cùng
-  (74.5 / 143.5 / 259.5) vẫn lệch 0.5/0.5 so với dòng "TỔNG CỘNG TOÀN BỘ PHASE 1 (bao gồm Phase 1.6 và Phase
-  1.7)" của `estimate.md` (75 / 143.5 / 260) — lệch này 100% là do mang theo sai số cũ của Phase 4, không
-  phải do Phase 7/Phase 8 hay việc đổi số Phase 8 gây ra.
+  khác Phase 4.
+- **Phase 9/10/11 (FR-11/FR-12/FR-13) cũng không có sai số cộng dồn**: 12 dòng Task (Phase 9), 11 dòng Task
+  (Phase 10) và 12 dòng Task (Phase 11) cộng trực tiếp cho đúng từng dòng "Tổng Phase 1.9/1.10/1.11" mà
+  `estimate.md` tự ghi (8/15.5/28, 7.25/16.5/31.5, 9.35/20.75/39) — giống Phase 6/7, khác Phase 4.
+- Vì Phase 12 (Cross-cutting, chịu ảnh hưởng gián tiếp từ sai số 0.5/0.5 đã có từ trước ở Phase 4) vẫn nằm
+  trong dòng TỔNG toàn Phase 1 cùng Phase 6/7/9/10/11, dòng TỔNG cuối cùng (99.3 / 196.75 / 359) vẫn lệch
+  0.5/0.5 so với dòng "TỔNG CỘNG TOÀN BỘ PHASE 1 (bao gồm Phase 1.6, 1.7, 1.8, 1.9, 1.10, 1.11)" của
+  `estimate.md` (99.8 / 196.75 / 359.5) — lệch này 100% là do mang theo sai số cũ của Phase 4, không phải do
+  Phase 9/10/11 hay việc đổi số Phase 8 → 12 gây ra.
+- **Lệch dữ liệu dependency so với bản phác thảo nhiệm vụ ban đầu**: yêu cầu nhiệm vụ gốc gợi ý "Phase 9 (FR-11)
+  phụ thuộc Phase 3 (chặn real-time)", nhưng đọc kỹ HLD v1.3 mục "Phase breakdown (bổ sung)" xác nhận dòng chữ
+  thật là "Phase 1.7 phải hoàn thành trước" (CONTACTS-PRIORITY là ngoại lệ trực tiếp của PREFIX matching, chứ
+  không phải của cơ chế real-time EXACT gốc) — ánh xạ đúng là Phase 9 phụ thuộc **Phase 7**, không phải Phase
+  3. WBS này dùng Phase 7 (đúng với HLD), không dùng Phase 3 như gợi ý ban đầu — xem mục phụ thuộc của Phase 9.
 - HLD v1.2 ghi Phase 1.7 "KHÔNG phụ thuộc Phase 1.4/1.5/1.6 — độc lập về runtime". Tuy nhiên Task 7.3.1
   (`CallHistoryRepository`/`CallHistoryEntryDto` mở rộng) sửa trực tiếp class đã tạo ở Phase 5 (Task 5.1.1/
   5.2.1) — đây KHÔNG phải mâu thuẫn số liệu, chỉ là khác bình diện (HLD nói về hành vi RUNTIME của cơ chế
@@ -627,6 +933,10 @@ có Phase 7, PERT-weighted cho Phase 1-6+8 ≈ 111.4 person-day — cả hai the
   tự ghi rằng trong quá trình cascade thiết kế FR-8, `ui-ux-designer` đã phát hiện 1 lỗ hổng thiết kế thật
   (buffer ban đầu của `PendingPromptRegistry` chỉ xử lý nhánh YES, bỏ sót nhánh NO gây mất dữ liệu) — đã được
   xử lý trong LLD v1.1 và phản ánh vào effort Task 6.2.2 ở trên, không cần hành động thêm từ WBS này.
+- Task 9.4.3 ("Regression chung cả 3 phase 9/10/11") nằm trong bảng Phase 1.9 của `estimate.md` nhưng mô tả
+  tự nhận là việc chung cho cả Phase 9, 10 và 11 — WBS này giữ đúng vị trí mã 9.4.3 như input (không tách
+  thành 3 bản sao ở Phase 10/11) để tránh đếm effort 2-3 lần; chỉ ghi nhận ở đây để người đọc không hiểu lầm
+  Task này CHỈ thuộc phạm vi Phase 9.
 
 ## Ngoài phạm vi
 
@@ -657,3 +967,20 @@ có Phase 7, PERT-weighted cho Phase 1-6+8 ≈ 111.4 person-day — cả hai the
 - **(Phase 7/FR-9/FR-10)** Lựa chọn plugin thật cho Share Sheet/file picker (dùng ở Task 7.4.1/7.4.2) và
   review quyền của plugin đó — LLD v1.3 tự ghi "NGOÀI PHẠM VI LLD", thuộc `security-auditor`, không nằm
   trong effort Task 7.4.x ở trên.
+- **(Phase 9/10/FR-11/FR-12)** Cập nhật `CallHistoryScreen`/`CallHistoryService.deriveDisplayStatus` để hiển
+  thị `decisionReason` mới (`CONTACTS_PRIORITY`/`BLOCK_TOGGLE_UNKNOWN`/`BLOCK_TOGGLE_ANONYMOUS`/
+  `BLOCK_TOGGLE_INTERNATIONAL`) — HLD v1.3/TestPlan v1.3 tự ghi nhận NGOÀI PHẠM VI lần cập nhật này (cùng loại
+  gap đã có từ Phase 7, vẫn CHƯA đóng cho cả 2 đợt). Dữ liệu đã được thu thập đúng ở `call_history.
+  decision_reason` (Task 9.3.1/9.3.2), chỉ UI/logic hiển thị còn để ngỏ. Khuyến nghị dùng `ui-ux-designer`
+  cập nhật `CallHistoryScreen` cho CẢ 2 gap (Phase 7 và Phase 9/10) cùng lúc, sau đó chạy lại
+  `project-estimator` bổ sung effort UI riêng.
+- **(Phase 10/FR-12)** Xác nhận độ tin cậy kỹ thuật phát hiện số ẩn danh/mã quốc gia qua `CallScreeningService`/
+  Telecom API (Task 10.2.2/10.4.4) — SRS 7.1 câu hỏi mở CHƯA được `system-architect`/`low-level-designer` xác
+  nhận khả thi tại thời điểm ước lượng. Khuyến nghị xác nhận trước khi bắt đầu Task 10.2.2.
+- **(Phase 11/FR-13)** Xác nhận cấu hình `android:process` thật cho `PermissionCheckWorker`/
+  `SafeCallApplication` (cùng hay khác process với `CallScreeningService`) — LLD v1.4 tự ghi "chưa xác định",
+  không chặn việc code (thiết kế không phụ thuộc kết quả đó) nhưng là điểm mở kỹ thuật chưa đóng, cùng loại
+  câu hỏi đã treo từ Phase 7 cho `CallScreeningService`.
+- **(Phase 10/FR-12)** Tùy chọn đổi "quốc gia nhà" cho định nghĩa "số quốc tế" — SRS v6.1/5.2 xác nhận rõ đây
+  là NGOÀI PHẠM VI Phase 1 (mã quốc gia tham chiếu cố định +84), không có Task nào trong Phase 10 ước lượng
+  cho tùy chọn này.

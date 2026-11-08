@@ -36,8 +36,25 @@ class SafeCallDatabaseHelper(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Chua co migration nao vuot qua v1 trong Phase 1 - placeholder cho Phase sau.
-        // KHONG drop/tao lai bang o day khi co version 2+ trong tuong lai.
+        if (oldVersion < 2) {
+            SafeCallSchema.MIGRATION_V1_TO_V2.forEach { migration ->
+                if (!columnExists(db, migration.table, migration.column)) {
+                    db.execSQL(migration.alterStatement)
+                }
+            }
+        }
+        recordMigrationApplied(db)
+    }
+
+    /** Idempotency guard cho onUpgrade - xem ghi chu [SafeCallSchema.MIGRATION_V1_TO_V2]. */
+    private fun columnExists(db: SQLiteDatabase, table: String, column: String): Boolean {
+        db.rawQuery("PRAGMA table_info($table)", null).use { cursor ->
+            val nameIndex = cursor.getColumnIndexOrThrow("name")
+            while (cursor.moveToNext()) {
+                if (cursor.getString(nameIndex) == column) return true
+            }
+        }
+        return false
     }
 
     /**

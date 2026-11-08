@@ -47,8 +47,25 @@ class DatabaseProvider {
         });
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        // Chua co migration nao vuot qua v1 trong Phase 1 - placeholder cho Phase sau.
+        if (oldVersion < 2) {
+          for (final migration in migrationV1ToV2) {
+            if (!await _columnExists(db, migration.table, migration.column)) {
+              await db.execute(migration.alterStatement);
+            }
+          }
+        }
+        await db.insert('schema_migrations', {
+          'version': kSchemaVersion,
+          'applied_at': DateTime.now().millisecondsSinceEpoch,
+          'applied_by': 'DART',
+        });
       },
     );
+  }
+
+  /// Idempotency guard cho onUpgrade - xem ghi chu [ColumnMigration].
+  Future<bool> _columnExists(Database db, String table, String column) async {
+    final columns = await db.rawQuery('PRAGMA table_info($table)');
+    return columns.any((row) => row['name'] == column);
   }
 }

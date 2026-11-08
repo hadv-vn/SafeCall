@@ -9,7 +9,7 @@ library;
 /// ca 2 phia mo CHUNG mot file SQLite thong qua cung thu muc databases/ mac dinh cua app.
 const String kDatabaseFileName = 'safecall.db';
 
-const int kSchemaVersion = 1;
+const int kSchemaVersion = 2;
 
 const int kPragmaBusyTimeoutOtherMs = 3000;
 
@@ -39,9 +39,17 @@ const List<String> createStatements = <String>[
   ''',
   '''
   CREATE TABLE IF NOT EXISTS blocklist_meta (
-      id             INTEGER PRIMARY KEY,
-      prefix_version INTEGER NOT NULL DEFAULT 0,
-      CONSTRAINT ck_blocklist_meta_singleton CHECK (id = 1)
+      id                           INTEGER PRIMARY KEY,
+      prefix_version               INTEGER NOT NULL DEFAULT 0,
+      contacts_priority_enabled    INTEGER NOT NULL DEFAULT 1,
+      block_unknown_enabled        INTEGER NOT NULL DEFAULT 0,
+      block_anonymous_enabled      INTEGER NOT NULL DEFAULT 0,
+      block_international_enabled  INTEGER NOT NULL DEFAULT 0,
+      CONSTRAINT ck_blocklist_meta_singleton CHECK (id = 1),
+      CONSTRAINT ck_blocklist_meta_contacts_priority_enabled CHECK (contacts_priority_enabled IN (0,1)),
+      CONSTRAINT ck_blocklist_meta_block_unknown_enabled CHECK (block_unknown_enabled IN (0,1)),
+      CONSTRAINT ck_blocklist_meta_block_anonymous_enabled CHECK (block_anonymous_enabled IN (0,1)),
+      CONSTRAINT ck_blocklist_meta_block_international_enabled CHECK (block_international_enabled IN (0,1))
   )
   ''',
   'INSERT OR IGNORE INTO blocklist_meta (id, prefix_version) VALUES (1, 0)',
@@ -86,6 +94,7 @@ const List<String> createStatements = <String>[
       termination_outcome  TEXT,
       matched_entry_type   TEXT,
       matched_prefix_value TEXT,
+      decision_reason      TEXT,
       started_at           INTEGER NOT NULL,
       ended_at             INTEGER NOT NULL,
       duration_seconds     INTEGER NOT NULL,
@@ -131,6 +140,21 @@ const List<String> createStatements = <String>[
       ),
       CONSTRAINT ck_call_history_matched_type_requires_blocked CHECK (
           matched_entry_type IS NULL OR was_blocked = 1
+      ),
+      CONSTRAINT ck_call_history_decision_reason CHECK (
+          decision_reason IS NULL
+          OR decision_reason IN ('CONTACTS_PRIORITY', 'BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')
+      ),
+      CONSTRAINT ck_call_history_decision_reason_excludes_matched_entry_type CHECK (
+          decision_reason IS NULL OR matched_entry_type IS NULL
+      ),
+      CONSTRAINT ck_call_history_decision_reason_contacts_priority CHECK (
+          decision_reason IS NULL OR decision_reason != 'CONTACTS_PRIORITY' OR was_blocked = 0
+      ),
+      CONSTRAINT ck_call_history_decision_reason_block_toggle CHECK (
+          decision_reason IS NULL
+          OR decision_reason NOT IN ('BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL')
+          OR was_blocked = 1
       )
   )
   ''',
@@ -188,4 +212,60 @@ const List<String> createStatements = <String>[
       CONSTRAINT ck_schema_migrations_applied_by CHECK (applied_by IN ('DART', 'NATIVE'))
   )
   ''',
+];
+
+/// Mot cot can them trong 1 buoc migration - [DatabaseProvider] PHAI kiem tra [column] da ton tai
+/// trong [table] chua (qua `PRAGMA table_info`) truoc khi chay [alterStatement] (khong chay vo
+/// dieu kien). Bat buoc vi mot so DB thuc te (da tao bang onCreate() tu ban build TRUOC KHI
+/// [kSchemaVersion] duoc bump o day nhung SAU KHI [createStatements] da duoc sua them cot moi) da
+/// co san cac cot nay o version=1 - chay ALTER TABLE ADD COLUMN vo dieu kien se loi "duplicate
+/// column name", lam onUpgrade that bai va dong ca database (crash thuc te da gap tren thiet bi
+/// test, KHONG phai gia dinh).
+class ColumnMigration {
+  const ColumnMigration(this.table, this.column, this.alterStatement);
+
+  final String table;
+  final String column;
+  final String alterStatement;
+}
+
+/// v1 -> v2 (bo sung FR-11/FR-12/FR-9 cot moi, ADR-008 muc "Tieu cuc/trade-off" da canh bao truoc
+/// ma chua ai lam): [createStatements] da duoc sua de them cot moi NHUNG do [kSchemaVersion] khong
+/// doi, sqflite se KHONG goi lai onCreate()/onUpgrade() cho database da ton tai tu truoc - cac cot
+/// moi se KHONG xuat hien, lam truy van doc cac cot moi that bai -> fail-open sai cho pipeline
+/// PREFIX/BLOCK-TOGGLE (bug thuc te da gap). PHAI phan chieu GIONG NHAU TUYET DOI voi
+/// MIGRATION_V1_TO_V2 ben android/.../db/SafeCallSchema.kt.
+///
+/// Han che da biet: SQLite KHONG cho ALTER TABLE them CONSTRAINT nhieu-cot vao bang da ton tai.
+/// Phase 1 chap nhan bo qua 3 CHECK nhieu-cot cua `decision_reason` tren DB da migrate - tinh dung
+/// dan van duoc dam bao o tang ung dung, CHECK don-cot van giu nguyen.
+const List<ColumnMigration> migrationV1ToV2 = <ColumnMigration>[
+  ColumnMigration(
+    'blocklist_meta',
+    'contacts_priority_enabled',
+    'ALTER TABLE blocklist_meta ADD COLUMN contacts_priority_enabled INTEGER NOT NULL DEFAULT 1 CHECK (contacts_priority_enabled IN (0,1))',
+  ),
+  ColumnMigration(
+    'blocklist_meta',
+    'block_unknown_enabled',
+    'ALTER TABLE blocklist_meta ADD COLUMN block_unknown_enabled INTEGER NOT NULL DEFAULT 0 CHECK (block_unknown_enabled IN (0,1))',
+  ),
+  ColumnMigration(
+    'blocklist_meta',
+    'block_anonymous_enabled',
+    'ALTER TABLE blocklist_meta ADD COLUMN block_anonymous_enabled INTEGER NOT NULL DEFAULT 0 CHECK (block_anonymous_enabled IN (0,1))',
+  ),
+  ColumnMigration(
+    'blocklist_meta',
+    'block_international_enabled',
+    'ALTER TABLE blocklist_meta ADD COLUMN block_international_enabled INTEGER NOT NULL DEFAULT 0 CHECK (block_international_enabled IN (0,1))',
+  ),
+  ColumnMigration(
+    'call_history',
+    'decision_reason',
+    '''
+    ALTER TABLE call_history ADD COLUMN decision_reason TEXT
+        CHECK (decision_reason IS NULL OR decision_reason IN ('CONTACTS_PRIORITY', 'BLOCK_TOGGLE_UNKNOWN', 'BLOCK_TOGGLE_ANONYMOUS', 'BLOCK_TOGGLE_INTERNATIONAL'))
+    ''',
+  ),
 ];

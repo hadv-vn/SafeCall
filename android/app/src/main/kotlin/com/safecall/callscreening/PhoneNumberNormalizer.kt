@@ -64,6 +64,14 @@ class PhoneNumberNormalizer {
         return withCountryCode
     }
 
+    /**
+     * FR-12/BLOCK-TOGGLE (LLD v1.4) - true neu [normalizedNumber] KHONG thuoc ma quoc gia Viet
+     * Nam (+84), co dinh cho Phase 1 (khong co tuy chon doi "quoc gia nha"). PHAI nhan input DA
+     * qua [normalize] - moi output hop le cua normalize() LUON bat dau bang "+" (input mo ho bi
+     * normalize() nem InvalidPhoneNumberFormatException tu truoc, khong toi duoc day).
+     */
+    fun isInternational(normalizedNumber: String): Boolean = !normalizedNumber.startsWith("+$COUNTRY_CODE")
+
     private fun assertAllDigits(digits: String, entryType: EntryType) {
         if (digits.isEmpty() || !DIGITS_ONLY_REGEX.matches(digits)) {
             throw InvalidPhoneNumberFormatException(formatErrorMessage(entryType))

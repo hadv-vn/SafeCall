@@ -181,13 +181,26 @@ class CallMonitorService : Service() {
             }
         }
 
+        // FR-11 (LLD v1.4) - doc decisionReason=CONTACTS_PRIORITY "mang theo" tu
+        // CallScreeningService qua RingingCallNumberHolder - PHAI doc TRUOC khi holder bi clear()
+        // (xay ra sau handleCallEnded() trong onCallStateChanged, thu tu hien tai da dung). Doi
+        // chieu lai normalizedNumber (cung nguyen tac voi isStillRingingWithSameNumber) truoc khi
+        // tin - tranh gan nham decisionReason neu holder da bi ghi de boi 1 cuoc goi khac.
+        val decisionReason = RingingCallNumberHolder.get()
+            ?.takeIf { it.normalizedNumber == normalizedNumber }
+            ?.decisionReason
+
         val draft = CallRecordDraft(
             rawNumber = entry.rawNumber,
             normalizedNumber = normalizedNumber,
             wasAnswered = entry.wasAnswered,
+            // Luong nay (Luong 2) CHI chay cho cuoc goi da do chuong toi IDLE/OFFHOOK binh thuong -
+            // cuoc goi bi chan real-time (CallScreeningService) khong bao gio dat RINGING o day.
+            wasBlocked = false,
             startedAtEpochMillis = entry.startedAtEpochMillis,
             endedAtEpochMillis = System.currentTimeMillis(),
             durationSeconds = entry.durationSeconds,
+            decisionReason = decisionReason,
         )
         val callRecordId = try {
             callHistoryRepository.insertCallRecord(draft)
