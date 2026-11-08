@@ -4,6 +4,7 @@ import '../call_history/call_history_screen.dart';
 import '../contacts/contacts_bridge.dart';
 import '../onboarding/contacts_banner.dart';
 import '../permissions/permissions_bridge.dart';
+import '../settings/settings_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/widgets.dart';
 import 'blocklist_export_import_models.dart';
@@ -248,6 +249,13 @@ class _BlocklistScreenState extends State<BlocklistScreen> {
       appBar: GradientAppBar(
         title: 'Danh sách chặn',
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Cài đặt',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            ),
+          ),
           IconButton(
             icon: _exporting
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
