@@ -73,7 +73,7 @@
 
 | Design | Code | Test |
 |---|---|---|
-| HLD Phase 5; ERD `call_history`; LLD pseudocode E8 (`deriveDisplayStatus`) | `lib/call_history/call_history_service.dart`, `call_history_models.dart`, `call_history_screen.dart`; `android/.../callscreening/db/CallHistoryRepository.kt` | ⬜ **Not-started** — màn hình được code nhưng chưa có dữ liệu cuộc gọi thật nào (FR-1/FR-2/FR-8 chưa chạy) để hiển thị/verify badge đúng. |
+| HLD Phase 5; ERD `call_history`; LLD pseudocode E8 (`deriveDisplayStatus`) | `lib/call_history/call_history_service.dart`, `call_history_models.dart`, `call_history_screen.dart`; `android/.../callscreening/db/CallHistoryRepository.kt` | ✅ **Tested-Pass (3/9 trạng thái)** *(nâng từ ⬜ Not-started, 2026-11-09, ngay sau lượt đóng FR-2/FR-3/FR-4)* — mở `CallHistoryScreen` thật trên `emulator-5554` (tap icon lịch sử trên `BlocklistScreen`), xác nhận bằng mắt khớp ĐÚNG với dữ liệu `call_history` qua `sqlite3`: `confirmedYes` ("Đã hỏi xác nhận — Có", màu đỏ/danger), `confirmedNo` ("Đã hỏi xác nhận — Không", màu xanh/success), `blockedRealtimeExact` ("Đã chặn — Số cụ thể") cho số vừa được thêm vào blocklist qua FR-3. Thứ tự `ended_at DESC` đúng. **AC3 (không hồi tố) được xác nhận gián tiếp**: bản ghi `0933000555` lúc 00:32 (TRƯỚC khi số này vào blocklist lúc ~00:33) vẫn giữ nguyên badge "Đã hỏi xác nhận — Có", KHÔNG bị đổi thành "Đã chặn" dù cùng số sau đó đã nằm trong blocklist — đúng hành vi AC3. **Chưa verify**: `blockedRealtimePrefix`, 3 nhánh `blockedToggle*` (FR-12), `blockedAtRinging` (FR-8, phụ thuộc FR-8 chưa test), badge phụ `contactsPriorityBadgeLabel`/`ringingOutcomeBadgeLabel`, và trạng thái `normal`. |
 
 ## FR-7 — Onboarding và cấp quyền, SRS AC1-AC5
 
@@ -187,7 +187,6 @@ nhất), 8.3.1 (UAT) — đều **chưa thực hiện**.
 Theo đúng yêu cầu Build Playbook ("RTM không còn story mồ côi, nếu còn phải NÊU RÕ"), các FR sau có code đầy
 đủ nhưng **0 test thật** (không phải "1 phần" như FR-1/FR-9/FR-10, mà hoàn toàn chưa chạm tới):
 
-- **FR-6** — màn hình lịch sử cuộc gọi, 0 dữ liệu thật để hiển thị nên 0 lần verify tay.
 - **FR-8** — toàn bộ luồng overlay-lúc-đổ-chuông + `endCall()`, 0 lần verify tay. **Đây là FR có rủi ro cao
   nhất đang mồ côi** (hành động không thể hoàn tác + 2 hàm lõi logic bị tái dựng do mất pseudocode gốc —
   cộng dồn 2 lớp rủi ro chưa kiểm chứng).
@@ -197,8 +196,9 @@ tương ứng phía trên. Việc verify tay nhóm này phát hiện và sửa 2
 chạy trên Binder thread sai, `CallLogNumberResolver` dùng `LIMIT 1` sai cú pháp `sortOrder`) khiến toàn bộ
 luồng Luồng 2 **không bao giờ chạy được** trên thiết bị thật trước lượt test này — đây cũng là nguyên nhân
 thật của bug "mất `call_history`" ghi ở `DECISION-LOG-SAFECALL.md` khối #7 (giả thuyết gốc ở đó sai, cần đính
-chính). FR-6 giờ CÓ dữ liệu thật để hiển thị (5 bản ghi `call_history` mới) nhưng **chưa ai mở
-`CallHistoryScreen` để verify badge hiển thị đúng** — vẫn giữ mồ côi cho tới khi làm việc đó.
+chính). **FR-6 hết mồ côi ngay sau đó, cùng ngày** — dữ liệu `call_history` thật từ lượt FR-2/3/4 cho phép mở
+`CallHistoryScreen` verify 3/9 badge thật (xem dòng FR-6 phía trên), gồm cả bằng chứng gián tiếp cho AC3
+(không hồi tố). Chỉ còn **FR-8** mồ côi test trong nhóm FR-6/FR-8 ban đầu.
 
 Không có FR nào trong FR-1..FR-10 thiếu CODE hoàn toàn — toàn bộ 10 FR đều có code path tương ứng đã build
 thành công. "Mồ côi" ở đây nghĩa là mồ côi TEST, không phải mồ côi code.
