@@ -1,7 +1,13 @@
 # Requirements Traceability Matrix — SAFECALL
 
-> Theo Build Playbook bước [10]. Nối Requirement (SRS v3.0, FR-1..FR-10) ↔ Design (HLD/LLD/ERD/UIUX) ↔ Code
+> Theo Build Playbook bước [10]. Nối Requirement (SRS v6.1, FR-1..FR-13) ↔ Design (HLD/LLD/ERD/UIUX) ↔ Code
 > (đường dẫn thật, đã kiểm tồn tại qua Glob trước khi ghi vào bảng) ↔ Test (trạng thái THẬT, không bịa).
+>
+> **Cập nhật 2026-11-08:** bổ sung FR-11/FR-12/FR-13 (thiếu suốt từ 2026-11-06/07 — phát hiện trong audit
+> `KNOWLEDGE-HEALTH-SAFECALL.md` c1/c3, xem file đó mục "Cập nhật 2026-11-08"). Đưa thêm 1 trạng thái Test mới
+> **🟢 Unit-test PASS (mock), thiếu UI** — khác cả 3 trạng thái cũ: cao hơn "Code-only" (có bằng chứng CHẠY
+> thật qua `gradle testDebugUnitTest`, không chỉ build OK), nhưng KHÔNG đủ để là "Tested-Pass" (test có mock,
+> không verify được UI/AC liên quan tới màn hình chưa tồn tại).
 >
 > **Quy ước trạng thái test** (xem ghi chú cuối file để biết lý do):
 > - ✅ **Tested-Pass** — đã verify tay thật qua emulator, quan sát kết quả đúng.
@@ -92,6 +98,24 @@
 |---|---|---|
 | ERD v1.2 đầy đủ (`blocklist`, `blocklist_meta`, `confirmed_safe`, `call_history`, `pending_prompts`, `schema_migrations`) | `lib/db/safecall_schema.dart`, `database_provider.dart`; `android/.../callscreening/db/SafeCallSchema.kt`, `SafeCallDatabaseHelper.kt`, `BlocklistReadException.kt`, `BlocklistWriteException.kt` | ✅ **Tested-Pass (một phần)** — tạo schema + CRUD cơ bản verify qua luồng FR-5; đã tìm và sửa lỗi PRAGMA-trong-transaction thật (`DECISION-LOG-SAFECALL.md` khối #4). Trigger `prefix_version` (FR-9) và cơ chế `mergeEntriesInTransaction` (FR-10) **chưa** verify riêng. |
 
+## FR-11 — Cơ chế ưu tiên Danh bạ (CONTACTS-PRIORITY), SRS v6.1 AC1-AC4 *(mới — bổ sung 2026-11-08, đóng gap Freshness phát hiện ở `KNOWLEDGE-HEALTH-SAFECALL.md` c1/c3; gap UI đóng 2026-11-08)*
+
+| Design | Code | Test |
+|---|---|---|
+| HLD v1.3 "Phase breakdown (bổ sung)" Phase 1.8/9; LLD v1.4 "pipeline 6 bước" + mục `SettingsScreen`/`SettingsService`; ERD v1.3 (`blocklist_meta` +4 cột); `ADR-008` mục "Quyết định 1" (lưu cờ trong `blocklist_meta`, không dùng `SharedPreferences`); UIUX v1.7 mục "Màn hình: SettingsScreen" | `android/.../callscreening/db/SafeCallSchema.kt` (cột `contacts_priority_enabled`), `BlocklistRepository.kt` (`getSettingsFlags`), `CallScreeningService.kt` (bước 4 pipeline); Dart: `lib/db/safecall_schema.dart` (cột tương ứng), **`lib/settings/settings_models.dart`/`settings_service.dart`/`settings_screen.dart` (MỚI 2026-11-08 — đóng gap UI)**, icon "Cài đặt" trên `BlocklistScreen` AppBar push `SettingsScreen` | 🟡 **Code-only, not verified (nâng từ 🟢 "thiếu UI")** — pipeline native vẫn PASS thật như cũ (`CallScreeningServiceTest.kt`, `exactMatch_doesNotCheckContactsPriority` + 2 case khác, `failures="0"`); `SettingsScreen`/`SettingsService` MỚI: `flutter analyze`/`flutter test` PASS (6 test `settings_models_test.dart` cho logic `SettingsFlags`, không mock DB — xem `test/settings/`), `flutter analyze lib/ test/` 0 issue. **CHƯA nâng lên ✅ Tested-Pass**: chưa thao tác thử tay trên emulator/thiết bị thật (mở `SettingsScreen`, gạt switch, xác nhận cờ đổi và pipeline `CallScreeningService` đọc đúng giá trị mới) — AC1/AC5 vẫn cần 1 lượt verify tay trước khi coi là đóng hoàn toàn. |
+
+## FR-12 — Bật/Tắt các chế độ chặn nâng cao (BLOCK-TOGGLE), SRS v6.1 AC1-AC7 *(mới — bổ sung 2026-11-08; gap UI đóng 2026-11-08)*
+
+| Design | Code | Test |
+|---|---|---|
+| HLD v1.3; LLD v1.4 "pipeline 6 bước" bước 1 (số ẩn danh) + bước 5 (số lạ/quốc tế) + mục `SettingsScreen`/`SettingsService`; ERD v1.3 (`blocklist_meta` +3 cột); `ADR-008` mục "Quyết định 1"; UIUX v1.7 mục "Màn hình: SettingsScreen" (3 switch "Chặn nâng cao") | `SafeCallSchema.kt`/`safecall_schema.dart` (`block_unknown_enabled`, `block_anonymous_enabled`, `block_international_enabled`), `CallScreeningService.kt` (bước 1 `handlePresentation`, bước 5); **`lib/settings/settings_screen.dart` (MỚI 2026-11-08)** — 3 switch độc lập, dòng cảnh báo riêng cho "Chặn tất cả số lạ" theo đúng UIUX | 🟡 **Code-only, not verified (nâng từ 🟢 "thiếu UI")** — cùng bằng chứng pipeline với FR-11 (20 test `CallScreeningServiceTest.kt` PASS); UI mới cùng mức kiểm chứng với FR-11 (`flutter analyze`/`flutter test` PASS, chưa verify tay emulator). **Cùng gap VERIFY với FR-11** — không còn gap CODE (UI đã tồn tại), chỉ còn thiếu 1 lượt thao tác thử tay. |
+
+## FR-13 — Kiểm tra trạng thái Quyền định kỳ (PERMISSION-CHECK), SRS v6.0-v6.1 AC1-AC3 *(mới — bổ sung 2026-11-08; gap CODE đóng 2026-11-08)*
+
+| Design | Code | Test |
+|---|---|---|
+| SRS v6.0 (quyết định #11, stakeholder xác nhận qua `AskUserQuestion` 2026-11-06); `ADR-008` mục "Quyết định 2" (`androidx.work.PeriodicWorkRequest`, chu kỳ 24h, không qua plugin Flutter `workmanager`); LLD v1.4 mục `PermissionStatusChecker`/`SafeCallApplication`/`PermissionCheckWorker`; UIUX v1.7/1.8 mục "Notification nhắc cấp lại quyền" | **MỚI 2026-11-08** — `android/.../callscreening/PermissionStatusChecker.kt` (core-check dùng chung), `PermissionCheckWorker.kt` (6 `PERMISSION_CHECK_STEPS`, notificationId 9001-9006 cố định theo UIUX), `SafeCallApplication.kt` (enqueue `PeriodicWorkRequest` 24h, `ExistingPeriodicWorkPolicy.KEEP`); `AndroidManifest.xml` (`android:name=".SafeCallApplication"`), `build.gradle` (+`androidx.work:work-runtime-ktx`); `PermissionsModule`/`RoleModule` refactor để dùng chung `PermissionStatusChecker` (không đổi hành vi); `MainActivity.onNewIntent`/`"getInitialPermissionStepId"` + `lib/permissions/permissions_bridge.dart` + `RootDecider` (`main.dart`) + `OnboardingFlowScreen` (`_FlowPhase.deniedOptional`, UIUX mục 8) cho luồng tap-notification-điều-hướng-đúng-bước (AC5) | 🟡 **Code-only, not verified (nâng từ ⬜ Not-started/orphan CODE)** — `gradle :app:compileDebugKotlin` BUILD SUCCESS; `PermissionStatusCheckerTest.kt` (MỚI, 6 test, MockK cho `Settings.canDrawOverlays`/`ContextCompat.checkSelfPermission`/`RoleManager`/`NotificationManagerCompat`) PASS thật (`failures="0"`); `gradle :app:testDebugUnitTest` đầy đủ (40 test, gồm `CallScreeningServiceTest` 20 + `PromptEligibilityEvaluatorTest` 13 + `PermissionStatusCheckerTest` 6 + golden 1) vẫn PASS sau refactor `PermissionsModule`/`RoleModule`. **CHƯA nâng lên ✅ Tested-Pass**: `PermissionCheckWorker.doWork()` (chạy qua `WorkManager` thật), hành vi `ExistingPeriodicWorkPolicy.KEEP` qua reboot, và luồng tap notification → đúng `Denied-mandatory`/`Denied-optional` step **CHƯA được thao tác thử trên emulator/thiết bị thật** — cần `androidx.work:work-testing` (`TestListenableWorkerBuilder`) hoặc ép `WorkManager` chạy ngay trên thiết bị test để verify AC1-AC4. |
+
 ## NFR-1 — Dữ liệu cá nhân bên thứ ba (xoá khi gỡ app, bảo vệ trên thiết bị, Export không mã hoá)
 
 | Design | Code | Test |
@@ -162,5 +186,18 @@ Theo đúng yêu cầu Build Playbook ("RTM không còn story mồ côi, nếu c
   nhất đang mồ côi** (hành động không thể hoàn tác + 2 hàm lõi logic bị tái dựng do mất pseudocode gốc —
   cộng dồn 2 lớp rủi ro chưa kiểm chứng).
 
-Không có FR nào thiếu CODE hoàn toàn — toàn bộ 10 FR đều có code path tương ứng đã build thành công. "Mồ côi"
-ở đây nghĩa là mồ côi TEST, không phải mồ côi code.
+Không có FR nào trong FR-1..FR-10 thiếu CODE hoàn toàn — toàn bộ 10 FR đều có code path tương ứng đã build
+thành công. "Mồ côi" ở đây nghĩa là mồ côi TEST, không phải mồ côi code.
+
+**Cập nhật 2026-11-08 (phát hiện lúc 12:24, đóng cùng ngày):** **FR-13 (PERMISSION-CHECK) mồ côi CODE hoàn
+toàn** — khác hẳn nhóm FR-2/FR-3/FR-4/FR-6/FR-8 ở trên (có code, thiếu test) — FR-13 có Spec + ADR nhưng **0
+dòng code**. FR-11/FR-12 thì ở giữa: có code + có test tự động PASS thật, nhưng thiếu UI (`SettingsScreen`)
+nên không FR nào trong 2 FR này đạt được Tested-Pass dù test tự động xanh.
+
+**Đóng gap cùng ngày 2026-11-08 (sau phát hiện):** cả 2 gap trên đã được vá bằng CODE thật — FR-11/FR-12
+nay có `lib/settings/settings_screen.dart` (icon "Cài đặt" trên `BlocklistScreen`), hết mồ côi UI; FR-13 nay
+có `PermissionStatusChecker.kt`/`PermissionCheckWorker.kt`/`SafeCallApplication.kt` + wiring manifest/gradle/
+MainActivity/OnboardingFlowScreen, hết mồ côi CODE. **Không còn FR nào mồ côi CODE hoàn toàn trong FR-1..
+FR-13.** Cả 3 FR hạ xuống mức mồ côi TEST THAO TÁC TAY (giống nhóm FR-2/FR-3/FR-4/FR-6/FR-8) — có code +
+unit-test tự động PASS, nhưng chưa ai mở app/emulator thật để xác nhận hành vi UI/Worker đúng như thiết kế.
+Xem chi tiết bằng chứng ở 3 mục FR-11/FR-12/FR-13 phía trên.

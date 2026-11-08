@@ -1,24 +1,24 @@
 {
   "project": "SafeCall — Phase 1",
-  "generatedAt": "2026-10-25T19:45:00+07:00",
+  "generatedAt": "2026-11-08T12:30:00+07:00",
   "releaseStatus": { "level": "critical", "label": "KHÔNG release/publish Play Store ở trạng thái hiện tại" },
   "dashboardKpis": [
-    { "id": "nen", "label": "Nén (Compression)", "display": "N/A", "status": "neutral", "note": "Mẫu số (giờ thật) không có — TELEMETRY ghi N/A, không bịa số.", "source": "TELEMETRY-SAFECALL.md" },
-    { "id": "rework", "label": "Rework Rate", "display": "44.4%", "status": "warning", "note": "4 vòng rework / 9 vòng lặp quan sát (3 khối Telemetry, tính cả lần 2 — rebuild+test FR-9, 0 rework). Sửa 2026-10-25 (lần 2) — trước đó ghi 50% (4/8) vì chưa tính khối thứ 3.", "source": "TELEMETRY-SAFECALL.md" },
-    { "id": "humanedit", "label": "Human-edit Rate", "display": "0%", "status": "neutral", "note": "Không có nghĩa AI không sai — người duyệt ở tầng quyết định, không sửa dòng code.", "source": "TELEMETRY-SAFECALL.md" },
-    { "id": "testcov", "label": "Test Coverage theo FR", "display": "20%", "status": "critical", "note": "2/10 FR ở trạng thái Tested-Pass (FR-5, FR-7). FR-9: luồng thêm entry PREFIX qua UI đã test tay 2026-10-25 nhưng vẫn 'partial' (chặn cuộc gọi thật theo prefix chưa test) — không đổi mẫu số.", "source": "RTM-SAFECALL.md" },
-    { "id": "govgap", "label": "Governance Gap Rate", "display": "17.6%", "status": "warning", "note": "3 gap thật / 17 Task ≥L3 (lịch sử không đổi) — cả 3 đã được người dùng ký duyệt retroactive 2026-10-25 sau khi xem bằng chứng kỹ thuật thật. Không còn là gap 'chưa ai review'.", "source": "DELEGATION-MAP-SAFECALL.md" },
-    { "id": "riskopen", "label": "Risk Open Rate", "display": "100%", "status": "critical", "note": "10/10 rủi ro chính chưa có mitigation xác nhận xong.", "source": "RISK-SAFECALL.md" },
-    { "id": "testcount", "label": "Automated Test Case Count", "display": "58", "status": "good", "note": "Tăng từ 0 (2026-10-25) — golden-file PhoneNumberNormalizer, chưa chạy qua toolchain thật.", "source": "test/fixtures/phone_normalizer_golden.json" }
+    { "id": "nen", "label": "Nén (Compression)", "display": "N/A", "status": "neutral", "note": "Không đổi — vẫn không có đồng hồ bấm giờ thật cho bất kỳ phiên nào, kể cả phiên FR-11/12/13 (2026-11-06→08).", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "rework", "label": "Rework Rate", "display": "44.4%", "status": "warning", "note": "4/9 vòng — không đổi, nhưng Telemetry KHÔNG có khối nào cho việc FR-11/12/13 (14 file, +2624/-231 dòng ở 1 commit) — mẫu số không phủ phần việc gần nhất. Phát hiện 2026-11-08: bản .md trước khi sửa lệch với data.json (50% vs 44.4%) — 2 mirror không khớp.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "humanedit", "label": "Human-edit Rate", "display": "0%", "status": "neutral", "note": "0% cho CODE sản phẩm — không đổi. Mới 2026-11-08: lần đầu có review evidence thật (không tính vào KPI này) — PM tự sửa 3 file tài liệu 2026-11-06, xem Knowledge Health c5.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "testcov", "label": "Test Coverage theo FR", "display": "15.4%", "status": "critical", "note": "2/13 FR Tested-Pass (FR-5, FR-7) — mẫu số đúng nay là 13 (SRS v6.1), giảm từ 20% vì mẫu số tăng, KHÔNG phải quy hồi chất lượng. FR-11/FR-12 có 33 unit test PASS thật (gradle, 2026-11-08) nhưng thiếu Settings UI nên chưa thể Tested-Pass; FR-13 có 0% code.", "source": "RTM-SAFECALL.md (cập nhật 2026-11-08)" },
+    { "id": "govgap", "label": "Governance Gap Rate", "display": "17.6%", "status": "warning", "note": "3/17 không đổi theo nội dung Delegation Map hiện có — NHƯNG Delegation Map chưa có dòng nào cho Phase 9/10 (FR-11/12): CallScreeningService viết lại toàn bộ pipeline + migration blocklist_meta +4 cột, cả 2 chạm Layer 0 theo đúng MODULEMAP, chưa qua Delegation Map để xét Leash. ≥2 gap mới chưa ai ký duyệt kể cả retroactive.", "source": "DELEGATION-MAP-SAFECALL.md" },
+    { "id": "riskopen", "label": "Risk Open Rate", "display": "100%", "status": "critical", "note": "14/14 (sửa mẫu số — bản .md cũ ghi sai 10/10). Không có risk nào đóng dứt điểm. Phát hiện 2026-11-08: RISK-SAFECALL.md chưa có risk nào cho FR-11/12/13 dù có ≥2 rủi ro thật đang treo (Settings UI thiếu, FR-13 0% code) — đề xuất PM bổ sung R15/R16, không tự thêm.", "source": "RISK-SAFECALL.md" },
+    { "id": "testcount", "label": "Automated Test Case Count", "display": "58 + 34, PASS hôm nay", "status": "good", "note": "58 case golden-file (không đổi) + 34 JUnit method mới (CallScreeningServiceTest 20, PromptEligibilityEvaluatorTest 13, PhoneNumberNormalizerGoldenTest 1 loop 58 case). MỐC MỚI: gradle testDebugUnitTest đã CHẠY THẬT 2026-11-08 12:24 — build/app/test-results/.../TEST-*.xml, failures=0/errors=0 cho cả 3 class. Dart (flutter test) vẫn chưa chạy.", "source": "build/app/test-results/testDebugUnitTest/" }
   ],
   "knowledgeHealth": [
-    { "id": "c1", "label": "Traceability Coverage", "display": "94.1%", "target": "≥80%", "status": "good", "note": "16/17 req có Design quyết định + code/test (hoặc kế hoạch test) trong RTM, sau khi stakeholder xác nhận NFR-5/6/7. Chỉ NFR-5 còn không trace (deferred Phase 2, chủ động).", "source": "RTM-SAFECALL.md, SRS v3.1" },
-    { "id": "c2", "label": "Change Coupling", "display": "N/A", "target": "≥70%", "status": "neutral", "note": "Chỉ 3 commit trong repo, phần lớn là 1 khối uncommitted — không có lịch sử change-set nhỏ để tính.", "source": "git log" },
-    { "id": "c3", "label": "Freshness", "display": "100%*", "target": "≥85%", "status": "warning", "note": "Point-in-time (2026-10-25) ngay sau khi sửa 2 KPI stale — chưa có cơ chế tự động giữ fresh.", "source": "đối chiếu tay 8 file governance" },
-    { "id": "c4", "label": "Orphan Rate", "display": "5.6%", "target": "≤15%", "status": "good", "note": "Chỉ còn NFR-5 orphan toàn diện (deferred Phase 2 theo quyết định stakeholder, không phải thiếu sót). NFR-6/7 đã có Design quyết định. Giảm từ 44.4%→22.2%→16.7%→5.6%.", "source": "RTM-SAFECALL.md, MODULEMAP-SAFECALL.md, SRS v3.1" },
-    { "id": "c5", "label": "Review Evidence", "display": "N/A", "target": "≥90%", "status": "neutral", "note": "Không có review-log tách biệt theo artefact; Human-edit=0 toàn bộ.", "source": "TELEMETRY-SAFECALL.md" },
-    { "id": "c6", "label": "Decision Coverage", "display": "100%", "target": "≥75%", "status": "good", "note": "8/8 — ADR-003 đã phản ánh ngoại lệ Export/Share Sheet từ 2026-10-21; Risk/Weekly từng ghi sai là gap, đã sửa.", "source": "docs/adr/ADR-003-local-only-blocklist.md" },
-    { "id": "c7", "label": "Retrieval Quality", "display": "87.5%", "target": "≥70%", "status": "good", "note": "Spot-check 2 câu × 4 mục — verify file thật qua find; thiếu 1 decision record cho ngưỡng prefix FR-9.", "source": "KNOWLEDGE-HEALTH-SAFECALL.md" }
+    { "id": "c1", "label": "Traceability Coverage", "display": "80%", "target": "≥80%", "status": "warning", "note": "16/20 (mẫu số đúng = 13 FR + 7 NFR theo SRS v6.1). Giảm từ 94.1% vì RTM chưa có dòng FR-11/12/13 — ĐÃ SỬA 2026-11-08 (RTM bổ sung 3 dòng mới). PASS sát ngưỡng, và là PASS 'thật' sau khi RTM được cập nhật trong lượt audit này.", "source": "RTM-SAFECALL.md (đã cập nhật), SRS v6.1" },
+    { "id": "c2", "label": "Change Coupling", "display": "0%", "target": "≥70%", "status": "critical", "note": "Tính được thật lần đầu (14 commit đủ lịch sử). Governance-tracking doc (RTM/Delegation Map/Telemetry) KHÔNG BAO GIỜ đổi cùng commit với code — luôn là 1 commit 'snapshot' riêng SAU đó (0/7 commit code). Coupling với doc thiết kế (SRS/HLD/LLD/ERD/UIUX) cao hơn: 4/7≈57.1%, cũng dưới target.", "source": "git log --stat (14 commit)" },
+    { "id": "c3", "label": "Freshness", "display": "10%", "target": "≥85%", "status": "critical", "note": "1/10 file governance còn fresh (chỉ DOR-SAFECALL.md). 9/10 stale so với SRS v6.1/code 2026-11-06→08: RTM, Delegation Map, Telemetry, ModuleMap, Weekly, Decision Log, Risk (nội dung), Dashboard, Knowledge Health (2 file đang sửa). Đúng như cảnh báo tự ghi ở lần audit trước — đã xảy ra.", "source": "Đối chiếu tay 10 file docs/governance/*.md, 2026-11-08" },
+    { "id": "c4", "label": "Orphan Rate", "display": "10%", "target": "≤15%", "status": "warning", "note": "2/20 — NFR-5 (deferred chủ động, không đổi) + FR-13 (PERMISSION-CHECK) orphan MỚI: có SRS+ADR-008 nhưng 0 dòng code (grep xác nhận không có PermissionCheckWorker). Tăng từ 5.6%, vẫn PASS nhưng loại orphan mới đáng lo hơn vì không phải chủ đích.", "source": "SRS v6.1, ADR-008, Grep toàn repo" },
+    { "id": "c5", "label": "Review Evidence", "display": "N/A*", "target": "≥90%", "status": "neutral", "note": "Không ép ra tỷ lệ toàn cục. Lần đầu có review evidence thật, cụ thể: PM (hadv-vn) tự sửa RISK-SAFECALL.md + estimate.md + WBS-SafeCall-Phase1.md, 2026-11-06 (xem RISK-SAFECALL.md mục 'Log self-review/approve'). Phần còn lại của dự án vẫn không có review-log riêng.", "source": "RISK-SAFECALL.md mục Log self-review/approve" },
+    { "id": "c6", "label": "Decision Coverage", "display": "100%", "target": "≥75%", "status": "good", "note": "9/9 (mẫu số tăng từ 8→9) — ADR-008 (2026-11-07) phủ đúng 2 quyết định mới: lưu cờ FR-11/12 trong blocklist_meta, cơ chế PermissionCheckWorker (FR-13) dùng androidx.work thuần native. 0 gap quyết định kiến trúc.", "source": "docs/adr/ADR-001..ADR-008" },
+    { "id": "c7", "label": "Retrieval Quality", "display": "93.75%", "target": "≥70%", "status": "good", "note": "15/16 (cộng dồn 2 câu mới FR-11/FR-12 vào 2 câu cũ). Cả 2 câu mới tìm đúng Spec/Test/Decision, và đúng phát hiện ra + báo cáo đúng gap Code (thiếu Settings UI) cả 2 lần — tính là retrieval đúng vì tìm ra sự thật.", "source": "KNOWLEDGE-HEALTH-SAFECALL.md mục Spot-check c7" }
   ],
   "risks": [
     { "id": "R2",  "label": "Overlay lúc đổ chuông chưa test đa OEM thật", "L": 4, "I": 5, "score": 20, "owner": "QA/PM" },
@@ -32,7 +32,7 @@
     { "id": "R7",  "label": "Export dữ liệu bên thứ 3 qua Share Sheet — file không mã hoá (ADR-003 đã ghi nhận)", "L": 3, "I": 3, "score": 9, "owner": "PM" },
     { "id": "R10", "label": "2 vòng fix phát sinh worst-case cao bị ẩn trong WBS", "L": 3, "I": 3, "score": 9, "owner": "PM" },
     { "id": "R8",  "label": "Import gián đoạn giữa chừng — test crash chưa chạy", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" },
-    { "id": "R9",  "label": "Lệch normalizer Dart/Kotlin — golden-file viết xong, chưa chạy qua toolchain thật", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" },
+    { "id": "R9",  "label": "Lệch normalizer Dart/Kotlin — Kotlin đã chạy PASS thật 2026-11-08, Dart vẫn chưa", "L": 1, "I": 4, "score": 4, "owner": "Dev lead" },
     { "id": "R13", "label": "Rubber-stamping governance — 3 gap cụ thể đã ký duyệt, cơ chế chặn tự động trước build vẫn chưa có", "L": 2, "I": 4, "score": 8, "owner": "PM" },
     { "id": "R14", "label": "Dữ liệu thiết bị thật có thể dán nhầm vào prompt AI ở vòng test OEM", "L": 2, "I": 4, "score": 8, "owner": "Dev lead" }
   ],
@@ -47,6 +47,9 @@
     { "id": "FR-8", "label": "Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi", "status": "not-started" },
     { "id": "FR-9", "label": "Chặn theo đầu số (prefix)", "status": "partial" },
     { "id": "FR-10", "label": "Export/Import blocklist", "status": "partial" },
+    { "id": "FR-11", "label": "Ưu tiên Danh bạ (CONTACTS-PRIORITY) *(mới)*", "status": "unit-tested-no-ui" },
+    { "id": "FR-12", "label": "Bật/Tắt chặn nâng cao (BLOCK-TOGGLE) *(mới)*", "status": "unit-tested-no-ui" },
+    { "id": "FR-13", "label": "Kiểm tra quyền định kỳ (PERMISSION-CHECK) *(mới)*", "status": "no-code" },
     { "id": "DB", "label": "Cross-cutting — Schema & Database", "status": "pass" },
     { "id": "NFR-1", "label": "Dữ liệu cá nhân bên thứ ba (xoá khi gỡ app, Export)", "status": "partial" },
     { "id": "NFR-2", "label": "Minh bạch lý do xin quyền", "status": "pass" },
@@ -66,19 +69,23 @@
     { "n": 2, "task": "Gradle dependency resolution", "whatWrong": "file_picker 6.1.0 gọi API Flutter embedding đã xoá, compile fail", "level": "L3 / Leash A" },
     { "n": 3, "task": "Manifest & service init", "whatWrong": "foregroundServiceType=phoneCall cần quyền Dialer — crash SecurityException thật", "level": "L3 nominal, đáng lẽ A+ (gap)" },
     { "n": 4, "task": "Database init 2 phía", "whatWrong": "PRAGMA journal_mode=WAL trong transaction — SQLite error, hỏng toàn bộ đọc DB", "level": "L3 nominal, đáng lẽ A+ (gap)" },
-    { "n": 5, "task": "LLD review (pseudocode 4 hàm lõi)", "whatWrong": "Tự suy luận lại pseudocode đã mất thay vì DỪNG hỏi — vi phạm hard-stop", "level": "L5 Restricted (vi phạm)" }
+    { "n": 5, "task": "LLD review (pseudocode 4 hàm lõi)", "whatWrong": "Tự suy luận lại pseudocode đã mất thay vì DỪNG hỏi — vi phạm hard-stop", "level": "L5 Restricted (vi phạm)" },
+    { "n": 6, "task": "SafeCallDatabaseHelper PRAGMA (2026-11-08)", "whatWrong": "execSQL dùng cho PRAGMA trả về 1 dòng (table_info/user_version dạng query) — phải dùng rawQuery; lỗi chỉ lộ khi chạy thật", "level": "L3 / Leash A (fix nhỏ, cục bộ)" }
   ],
   "weeklyNextSteps": [
-    "Chạy flutter test + gradle testDebugUnitTest thật để đóng hẳn R9 (58/58 phải pass ở cả 2 toolchain).",
+    "Cập nhật DELEGATION-MAP/TELEMETRY cho Phase 9/10 (FR-11/12) — RTM đã cập nhật 2026-11-08, 2 file này vẫn stale.",
+    "Viết SettingsScreen (Dart) cho 4 công tắc FR-11/FR-12 — backend+test đã xanh, chỉ thiếu UI để người dùng thật dùng được.",
+    "Thiết kế + code PermissionCheckWorker (FR-13) theo ADR-008 — hiện 0% code dù đã có SRS+ADR từ 2026-11-06/07.",
+    "Chạy flutter test thật (Dart) để đóng hẳn R9 — phía Kotlin đã xanh 34/34 qua gradle 2026-11-08.",
     "Chạy script adb emu gsm call/accept/cancel để đóng Task 8.1.1 + test race condition 4.4.2 trên emulator.",
-    "Người dùng tự tạo keystore theo docs/release/RELEASE-SIGNING-SAFECALL.md.",
-    "Xác nhận với stakeholder: ngưỡng prefix 4 ký tự (R5), source=IMPORTED khi import (LLD v1.3).",
+    "Bổ sung ≥2 risk mới (R15/R16) vào RISK-SAFECALL.md cho Settings UI thiếu + FR-13 0% code — cần PM gán L/I.",
     "Chạy WBS Task 7.7.3 (sanity-check 10.000 entry) — đóng test cho CẢ NFR-4 và NFR-6 cùng lúc.",
     "Review đối chiếu chi tiết Nghị định 13/2023/NĐ-CP với thiết kế hiện tại (NFR-7 mới có khung áp dụng, chưa review)."
   ],
   "sources": [
     "DASHBOARD-SAFECALL.md", "WEEKLY-SAFECALL.md", "KNOWLEDGE-HEALTH-SAFECALL.md", "MODULEMAP-SAFECALL.md",
-    "RTM-SAFECALL.md", "RISK-SAFECALL.md", "DELEGATION-MAP-SAFECALL.md",
-    "DECISION-LOG-SAFECALL.md", "DOR-SAFECALL.md", "TELEMETRY-SAFECALL.md", "docs/adr/ADR-003-local-only-blocklist.md"
+    "RTM-SAFECALL.md (cập nhật 2026-11-08)", "RISK-SAFECALL.md", "DELEGATION-MAP-SAFECALL.md",
+    "DECISION-LOG-SAFECALL.md", "DOR-SAFECALL.md", "TELEMETRY-SAFECALL.md", "docs/adr/ADR-008-settings-storage-and-permission-check-worker.md",
+    "git log --stat (14 commit)", "build/app/test-results/testDebugUnitTest/ (2026-11-08)", "SRS-SafeCall-Phase1.md v6.1"
   ]
 }
