@@ -12,6 +12,14 @@ import android.telecom.TelecomManager
  * `PhoneAccount.CAPABILITY_SELF_MANAGED`, KHONG dung `MANAGE_OWN_CALLS`/Core-Telecom) - chi dung
  * cho `AnonymousCallBlockingInstrumentedTest` (goi FR-12 AC3).
  *
+ * NAM O SOURCE SET `debug` (khong phai `androidTest`) CO CHU DICH: `registerPhoneAccount()` trong
+ * test bi Telecom tu choi voi `SecurityException: enforcePhoneAccountModificationForPackage` khi
+ * class nay khai bao trong package rieng cua androidTest APK (`<applicationId>.test`) - vi code
+ * goi `registerPhoneAccount()` thuc thi duoi UID cua app "com.safecall" (instrumentation chay
+ * lồng vao process app duoc test), UID do KHONG so huu package "com.safecall.test" nen bi tu choi.
+ * Dat o `debug/` giu class thuoc CHINH package "com.safecall" (khop UID), VA khong bao gio lo vao
+ * build release (source set `debug` khong duoc merge vao variant `release`).
+ *
  * Ly do BAT BUOC phai MANAGED (xem comment chi tiet trong file test): da xac nhan qua ma nguon
  * AOSP (`CallsManager.onSuccessfulIncomingCall` bo qua call filtering/`CallScreeningService` cho
  * cuoc goi `isSelfManaged()`) - self-managed se KHONG BAO GIO khien `CallScreeningService` cua

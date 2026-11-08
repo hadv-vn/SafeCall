@@ -60,7 +60,6 @@ import org.junit.runner.RunWith
 class AnonymousCallBlockingInstrumentedTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
-    private val testContext = instrumentation.context
     private val targetContext = instrumentation.targetContext
 
     private val telecomManager by lazy {
@@ -73,11 +72,14 @@ class AnonymousCallBlockingInstrumentedTest {
     // pham dung (`applicationContext`).
     private val dbHelper by lazy { SafeCallDatabaseHelper(targetContext) }
 
-    // ComponentName dung testContext (package cua CHINH androidTest APK, vd "com.safecall.test")
-    // vi TestConnectionService duoc khai bao trong AndroidManifest.xml cua androidTest, KHONG phai
-    // manifest cua app "com.safecall".
+    // ComponentName dung targetContext (package "com.safecall", KHONG phai "com.safecall.test"
+    // cua testContext) - TestConnectionService nay duoc khai bao trong AndroidManifest.xml cua
+    // source set `debug` cua app, khong phai androidTest. BAT BUOC phai khop package nay voi UID
+    // thuc thi `registerPhoneAccount()` (UID cua "com.safecall", vi instrumentation chay long vao
+    // process app duoc test) - neu dung testContext, Telecom se tu choi bang SecurityException
+    // "enforcePhoneAccountModificationForPackage" (da xac nhan thuc te khi chay tren AVD).
     private val accountHandle by lazy {
-        PhoneAccountHandle(ComponentName(testContext, TestConnectionService::class.java), ACCOUNT_ID)
+        PhoneAccountHandle(ComponentName(targetContext, TestConnectionService::class.java), ACCOUNT_ID)
     }
 
     @Before
@@ -94,7 +96,7 @@ class AnonymousCallBlockingInstrumentedTest {
         // Enable 1 lan qua shell - KHONG co API cong khai nao de app tu enable PhoneAccount cua
         // chinh minh (xac nhan tu pattern app nguon mo "Phony"). Idempotent - chay lai nhieu lan
         // (moi test mot lan) khong gay loi.
-        val componentFlat = ComponentName(testContext, TestConnectionService::class.java).flattenToShortString()
+        val componentFlat = ComponentName(targetContext, TestConnectionService::class.java).flattenToShortString()
         runShellCommand("telecom set-phone-account-enabled $componentFlat $ACCOUNT_ID 0")
     }
 
