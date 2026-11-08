@@ -62,6 +62,17 @@ class PermissionsBridge {
     );
   }
 
+  /// FR-13 (LLD v1.4) - `stepId` cua PERMISSION_CHECK_STEPS neu app duoc mo tu thong bao nhac cap
+  /// lai quyen (PermissionCheckWorker), hoac null trong moi truong hop khac. KHONG qua [_invoke] -
+  /// null la ket qua HOP LE (khac cac method khac xem null la loi), khong duoc nem exception.
+  Future<String?> getInitialPermissionStepId() async {
+    try {
+      return await _channel.invokeMethod<String>('getInitialPermissionStepId');
+    } on PlatformException catch (e) {
+      throw PermissionsBridgeException(e.code, e.message);
+    }
+  }
+
   Future<T> _invoke<T>(String method, [Map<String, dynamic>? arguments]) async {
     try {
       final result = await _channel.invokeMethod<T>(method, arguments);

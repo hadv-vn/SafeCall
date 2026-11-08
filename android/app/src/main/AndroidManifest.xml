@@ -22,7 +22,7 @@
 
     <application
         android:label="SafeCall"
-        android:name="${applicationName}"
+        android:name=".SafeCallApplication"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false">

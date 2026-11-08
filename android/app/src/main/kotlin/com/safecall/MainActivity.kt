@@ -3,6 +3,7 @@ package com.safecall
 import android.content.Intent
 import androidx.core.content.ContextCompat
 import com.safecall.callscreening.ContactsLookupModule
+import com.safecall.callscreening.PermissionCheckWorker
 import com.safecall.callscreening.PermissionsModule
 import com.safecall.callscreening.RoleModule
 import com.safecall.callscreening.monitor.CallEventStreamHandler
@@ -57,6 +58,13 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                     "checkAllPermissionsStatus" -> permissionsModule.checkAllPermissionsStatus(result)
+                    "getInitialPermissionStepId" -> {
+                        // FR-13 (LLD v1.4) - doc 1 LAN roi xoa extra (khong tra lai cung stepId cho
+                        // lan goi sau, vd Flutter engine duoc tao lai trong khi Activity van song).
+                        val stepId = intent?.getStringExtra(PermissionCheckWorker.EXTRA_PERMISSION_STEP_ID)
+                        intent?.removeExtra(PermissionCheckWorker.EXTRA_PERMISSION_STEP_ID)
+                        result.success(stepId)
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -111,6 +119,14 @@ class MainActivity : FlutterActivity() {
         // Khoi dong tu day (khong doi xac nhan quyen rieng) - neu thieu READ_PHONE_STATE, service
         // tu stopSelf() ngay trong onCreate() (SecurityException da duoc bat o do).
         ContextCompat.startForegroundService(this, Intent(this, CallMonitorService::class.java))
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // launchMode="singleTop" - Android KHONG tu thay getIntent() khi activity da dang song,
+        // intent moi (vd tap notification PERMISSION-CHECK, FR-13) chi toi qua tham so nay. Phai tu
+        // setIntent() de "getInitialPermissionStepId" (MethodChannel) doc duoc gia tri moi.
+        setIntent(intent)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {

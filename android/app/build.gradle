@@ -89,6 +89,9 @@ dependencies {
     // ContextCompat/NotificationCompat/NotificationManagerCompat (PermissionsModule,
     // ScamConfirmationNotifier, PendingPromptRegistry, CallMonitorService - Phase 1/4).
     implementation "androidx.core:core-ktx:1.13.1"
+    // PeriodicWorkRequest cho PermissionCheckWorker (FR-13, ADR-008 quyet dinh 2 - Kotlin thuan,
+    // khong qua plugin Flutter workmanager).
+    implementation "androidx.work:work-runtime-ktx:2.9.1"
 
     // Unit test JVM thuan cho src/test/kotlin (PhoneNumberNormalizerGoldenTest).
     testImplementation "junit:junit:4.13.2"

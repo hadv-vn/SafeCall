@@ -22,10 +22,9 @@ class RoleModule(private val activity: Activity) {
         result.success(isRoleHeld())
     }
 
-    private fun isRoleHeld(): Boolean {
-        return roleManager?.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING) == true &&
-            roleManager?.isRoleHeld(RoleManager.ROLE_CALL_SCREENING) == true
-    }
+    // Core-check tach sang PermissionStatusChecker.isRoleHeld (dung Context, LLD v1.4) - dung
+    // chung voi PermissionCheckWorker (FR-13). Khong doi hanh vi.
+    private fun isRoleHeld(): Boolean = PermissionStatusChecker.isRoleHeld(activity)
 
     fun requestRole(result: MethodChannel.Result) {
         val manager = roleManager

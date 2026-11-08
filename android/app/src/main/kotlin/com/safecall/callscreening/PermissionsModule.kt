@@ -43,18 +43,14 @@ class PermissionsModule(private val activity: Activity) {
         result.success(statuses)
     }
 
+    // Core-check (co quyen hay khong) tach sang PermissionStatusChecker.isGranted (dung Context,
+    // LLD v1.4) - dung chung voi PermissionCheckWorker (FR-13). Phan tri-state NOT_REQUESTED vs
+    // DENIED (qua SharedPreferences) VA truong hop SYSTEM_ALERT_WINDOW (khong co NOT_REQUESTED,
+    // chi GRANTED/DENIED) giu nguyen y het hanh vi cu - khong doi.
     private fun statusOf(permissionKey: String): PermissionStatus {
-        if (permissionKey == PermissionKeys.SYSTEM_ALERT_WINDOW) {
-            return if (Settings.canDrawOverlays(activity)) PermissionStatus.GRANTED else PermissionStatus.DENIED
-        }
-        if (PermissionKeys.isImplicitlyGrantedBelowRuntimeModel(permissionKey)) {
-            return PermissionStatus.GRANTED
-        }
-        val androidPermission = PermissionKeys.RUNTIME_PERMISSION_MAP[permissionKey]
-            ?: return PermissionStatus.DENIED
-        val granted = ContextCompat.checkSelfPermission(activity, androidPermission) ==
-            PackageManager.PERMISSION_GRANTED
-        if (granted) return PermissionStatus.GRANTED
+        if (PermissionStatusChecker.isGranted(activity, permissionKey)) return PermissionStatus.GRANTED
+        if (permissionKey == PermissionKeys.SYSTEM_ALERT_WINDOW) return PermissionStatus.DENIED
+        if (!PermissionKeys.RUNTIME_PERMISSION_MAP.containsKey(permissionKey)) return PermissionStatus.DENIED
         val wasRequested = prefs.getBoolean(requestedFlagKey(permissionKey), false)
         return if (wasRequested) PermissionStatus.DENIED else PermissionStatus.NOT_REQUESTED
     }
