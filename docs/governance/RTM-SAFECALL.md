@@ -97,7 +97,7 @@
 
 | Design | Code | Test |
 |---|---|---|
-| HLD Phase 7; UIUX "Export blocklist"/"Import blocklist"; ERD "Vì sao KHÔNG cần bảng mới cho lịch sử Export/Import"; LLD pseudocode E7 (`BlocklistImportService` → `source=IMPORTED`, **đã tự giải quyết qua chính pseudocode gốc, không phải giả định mới — xem Phụ lục 8.4.1**) | `lib/blocklist/blocklist_export_service.dart`, `blocklist_import_service.dart`, `blocklist_export_import_models.dart` | 🟡 **Code-only, not verified** — build OK sau khi nâng `file_picker` lên `^8.1.2` (Decision Log #2), nhưng Share Sheet export thật và chọn-file-import thật **chưa** được thao tác thử. AC10 (import gián đoạn giữa chừng) đặc biệt chưa test — đúng khớp WBS Task 7.7.5 "chưa chạy" trong `RISK-SAFECALL.md`. |
+| HLD Phase 7; UIUX "Export blocklist"/"Import blocklist"; ERD "Vì sao KHÔNG cần bảng mới cho lịch sử Export/Import"; LLD pseudocode E7 (`BlocklistImportService` → `source=IMPORTED`, **đã tự giải quyết qua chính pseudocode gốc, không phải giả định mới — xem Phụ lục 8.4.1**) | `lib/blocklist/blocklist_export_service.dart`, `blocklist_import_service.dart`, `blocklist_export_import_models.dart` | ✅ **Tested-Pass (7/11 AC)** *(nâng từ 🟡 Code-only, 2026-11-09)* — verify tay thật trên `emulator-5554`, thao tác qua Android Share Sheet thật + system file picker thật (điều hướng `Downloads`, chọn file thật), không mock bất kỳ phần nào: **AC1** (blocklist có entry → tạo file JSON, mở Share Sheet thật — đọc trực tiếp nội dung file qua `run-as cat`, đúng schema `{schema_version, exported_at, entries[]}`); **AC3** (hủy Share Sheet bằng back → blocklist không đổi, xác nhận qua `sqlite3`); **AC4/AC5** (file hợp lệ 4 entry: 2 mới/1 trùng/1 sai định dạng → dialog kết quả **"Đã thêm 2 số mới, bỏ qua 1 số đã có, 1 dòng không hợp lệ"**, khớp CHÍNH XÁC qua `sqlite3` — 2 entry mới có `source=IMPORTED`, ghi đè đúng theo quyết định LLD dù file gốc ghi `source=MANUAL`); **AC6** (file text thường, không phải JSON → dialog "File không đúng định dạng của SafeCall.", blocklist không đổi); **AC7** (gộp cùng lượt AC4/AC5 — entry sai định dạng bị bỏ qua, entry hợp lệ vẫn merge, báo đúng số lượng); **AC8** (`schema_version=99` > `kBlocklistSchemaVersion=1` → dialog "File này được xuất từ một phiên bản SafeCall mới hơn, chưa thể nhập ở phiên bản hiện tại.", blocklist không đổi). **Chưa verify**: AC2 (nút Export disabled khi blocklist rỗng — blocklist không rỗng trong lượt test này), AC9 (`schema_version` cũ hơn — không có file test), AC10 (crash giữa transaction import — Test Plan tự ghi nhận khó test chính xác, cần thiết bị thật), AC11 (sanity-check số lượng lớn, không có ngưỡng pass/fail cụ thể theo SRS). |
 
 ## Cross-cutting — Schema & Database (không phải 1 FR riêng, nền cho mọi FR trên)
 
@@ -178,9 +178,12 @@ khác nhau; tương tự, 1 lần chạy Task 7.7.3 sẽ đóng CẢ HAI test c�
 
 Lấy từ `WBS-SafeCall-Phase1.md`, khớp với `RISK-SAFECALL.md`: Task 6.5.3 (test đa OEM thật, FR-8), 7.7.3
 (performance sanity-check prefix), 7.7.5 (test crash giữa import, FR-10/AC10), 4.4.2/6.5.2 (integration test
-race có kiểm soát), 8.1.x (System/E2E script `adb emu gsm call`), 8.2.1/8.2.2 đã làm MỘT PHẦN qua rà soát thủ
-công (xem Phụ lục 8.4.1 LLD — không phát hiện SQL injection, `allowBackup=false`, 1 điểm `endCall()` duy
-nhất), 8.3.1 (UAT) — đều **chưa thực hiện**.
+race có kiểm soát), 8.2.1/8.2.2 đã làm MỘT PHẦN qua rà soát thủ công (xem Phụ lục 8.4.1 LLD — không phát hiện
+SQL injection, `allowBackup=false`, 1 điểm `endCall()` duy nhất), 8.3.1 (UAT) — đều **chưa thực hiện**.
+
+**Cập nhật 2026-11-09:** Task **8.1.x (System/E2E script `adb emu gsm call`) nay coi như ĐÃ THỰC HIỆN** —
+dùng xuyên suốt các lượt verify tay FR-1/FR-2/FR-3/FR-4/FR-6/FR-9/FR-11/FR-12 (xem dòng FR tương ứng phía
+trên), không còn nằm trong danh sách "chưa thực hiện".
 
 ## Story/FR "mồ côi" — không giấu
 
