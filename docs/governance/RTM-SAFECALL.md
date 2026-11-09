@@ -85,7 +85,7 @@
 
 | Design | Code | Test |
 |---|---|---|
-| HLD Phase 6; UIUX "Màn hình/Overlay MỚI: RingingScamOverlay"; ADR-005/ADR-007; LLD **pseudocode E3/E4 gốc đã MẤT** (`evaluateRingingPromptEligibility`/`resolveRingingYes` tái dựng từ SRS/ERD/UIUX — **đây là hard-stop bị vi phạm, xem `DECISION-LOG-SAFECALL.md` khối #5**) | `android/.../callscreening/monitor/RingingScamOverlay.kt`, `RingingEligibility.kt`, `RingingCallNumberHolder.kt` (**giải pháp phát sinh cho giới hạn privacy API 31+, không có trong LLD — xem Phụ lục 8.4.1**), `CallTerminationOutcome.kt`, `CallMonitorService.kt` (mở rộng `attemptEndCall`/single call-site theo ADR-005) | ⬜ **Not-started** — chưa mô phỏng cuộc gọi đang đổ chuông; hành động `endCall()` thật **chưa được gọi thử lần nào**. Đây là luồng rủi ro cao nhất chưa test (hành động không thể hoàn tác, NFR-3). |
+| HLD Phase 6; UIUX "Màn hình/Overlay MỚI: RingingScamOverlay"; ADR-005/ADR-007; LLD **pseudocode E3/E4 gốc đã MẤT** (`evaluateRingingPromptEligibility`/`resolveRingingYes` tái dựng từ SRS/ERD/UIUX — **đây là hard-stop bị vi phạm, xem `DECISION-LOG-SAFECALL.md` khối #5**) | `android/.../callscreening/monitor/RingingScamOverlay.kt`, `RingingEligibility.kt`, `RingingCallNumberHolder.kt` (**giải pháp phát sinh cho giới hạn privacy API 31+, không có trong LLD — xem Phụ lục 8.4.1**), `CallTerminationOutcome.kt`, `CallMonitorService.kt` (mở rộng `attemptEndCall`/single call-site theo ADR-005) | ✅ **Tested-Pass trên emulator (5/10 AC) — CHƯA đủ điều kiện release** *(nâng từ ⬜ Not-started, 2026-11-09)* — verify tay thật trên `emulator-5554` (`adb emu gsm call`, tap thật qua overlay): **AC1** (overlay hiện đúng lúc đổ chuông, nội dung khớp UIUX 100% — số gọi, cảnh báo không thể hoàn tác, 2 nút); **AC2** (số trong danh bạ → KHÔNG hiện overlay, chỉ màn hình cuộc gọi hệ thống bình thường); **AC5** (chọn "Có" → `blocklist` ghi NGAY (`AUTO_CONFIRMED`) VÀ **`TelecomManager.endCall()` THỰC SỰ ngắt được cuộc gọi** trên AVD — `CallTerminationOutcome.SUCCESS`, xác nhận qua `mCallState: RINGING→IDLE` + `pending_prompts`/`call_history` ghi đúng `termination_outcome=SUCCESS`); **AC6** (chọn "Không" → `confirmed_safe` ghi đúng, cuộc gọi TIẾP TỤC đổ chuông bình thường — không bị ảnh hưởng); **AC7** (hủy cuộc gọi TRƯỚC khi tương tác → overlay tự đóng sạch, `pending_prompts` giữ nguyên `resolved=0`, không ghi gì vào `blocklist`/`confirmed_safe`). **CẢNH BÁO QUAN TRỌNG — không suy diễn rộng từ kết quả AC5**: `ADR-005`/`call-termination-feasibility.md` yêu cầu tường minh vòng test trên **thiết bị thật đa OEM** trước khi release, vì hành vi `endCall()` phụ thuộc telecom stack theo OEM — `endCall()` chạy được trên AVD (telecom stack mô phỏng của Google) **KHÔNG chứng minh** nó sẽ chạy đúng trên Samsung/Oppo/Xiaomi... thật, đặc biệt 3 rủi ro race đã ghi trong Test Plan (tự kết thúc / người dùng tự bắt máy đúng lúc / call-waiting) **hoàn toàn chưa test được** trên emulator (không giả lập được). Task 6.5.3 (test đa OEM thật) vẫn **bắt buộc, chưa thực hiện**, đây vẫn là lý do không release liên quan FR-8. **Chưa verify**: AC3 (đã blocklist — về lý thuyết không tới được RINGING vì bị chặn ở Luồng 1 trước), AC4 (đã confirmed-safe), AC8 (nhỡ không tương tác), AC9 (hiện lại sau khi bỏ qua), AC10 (thiếu quyền). |
 
 ## FR-9 — Chặn theo đầu số (prefix), SRS AC1-AC8
 
@@ -187,14 +187,19 @@ trên), không còn nằm trong danh sách "chưa thực hiện".
 
 ## Story/FR "mồ côi" — không giấu
 
-Theo đúng yêu cầu Build Playbook ("RTM không còn story mồ côi, nếu còn phải NÊU RÕ"), các FR sau có code đầy
-đủ nhưng **0 test thật** (không phải "1 phần" như FR-1/FR-9/FR-10, mà hoàn toàn chưa chạm tới):
+Theo đúng yêu cầu Build Playbook ("RTM không còn story mồ côi, nếu còn phải NÊU RÕ"), tính tới đầu ngày
+2026-11-09 các FR sau có code đầy đủ nhưng **0 test thật** (không phải "1 phần" như FR-1/FR-9/FR-10, mà hoàn
+toàn chưa chạm tới) — mục này nay chỉ còn giá trị lịch sử, xem cập nhật ngay dưới:
 
-- **FR-8** — toàn bộ luồng overlay-lúc-đổ-chuông + `endCall()`, 0 lần verify tay. **Đây là FR có rủi ro cao
-  nhất đang mồ côi** (hành động không thể hoàn tác + 2 hàm lõi logic bị tái dựng do mất pseudocode gốc —
-  cộng dồn 2 lớp rủi ro chưa kiểm chứng).
+- ~~**FR-8** — toàn bộ luồng overlay-lúc-đổ-chuông + `endCall()`, 0 lần verify tay.~~
 
-**Đóng 2026-11-09:** **FR-2, FR-3, FR-4** hết mồ côi test — cả 3 nay ✅ Tested-Pass (AC1), xem các dòng FR
+**Đóng 2026-11-09 (lượt verify FR-8):** hết mồ côi test tay — 5/10 AC đã Tested-Pass trên emulator, bao gồm
+CẢ AC5 (`endCall()` thực sự chạy được trên AVD). **KHÔNG đồng nghĩa FR-8 hết rủi ro** — xem cảnh báo chi tiết
+ở dòng FR-8 phía trên: `endCall()` chạy được trên AVD không thay thế được yêu cầu bắt buộc của ADR-005 (test
+đa OEM thật, Task 6.5.3 WBS). Không còn FR nào trong FR-1..FR-13 ở mức mồ côi test tay hoàn toàn 0% — FR nào
+cũng có ít nhất 1 lần verify tay thật.
+
+**Đóng 2026-11-09 (lượt verify FR-2/FR-3/FR-4):** **FR-2, FR-3, FR-4** hết mồ côi test — cả 3 nay ✅ Tested-Pass (AC1), xem các dòng FR
 tương ứng phía trên. Việc verify tay nhóm này phát hiện và sửa 2 bug sản phẩm thật (`TelephonyCallbackObserver`
 chạy trên Binder thread sai, `CallLogNumberResolver` dùng `LIMIT 1` sai cú pháp `sortOrder`) khiến toàn bộ
 luồng Luồng 2 **không bao giờ chạy được** trên thiết bị thật trước lượt test này — đây cũng là nguyên nhân
