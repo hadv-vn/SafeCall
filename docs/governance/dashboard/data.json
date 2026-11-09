@@ -1,31 +1,31 @@
 {
   "project": "SafeCall — Phase 1",
-  "generatedAt": "2026-11-08T22:30:00+07:00",
+  "generatedAt": "2026-11-09T08:00:00+07:00",
   "releaseStatus": { "level": "critical", "label": "KHÔNG release/publish Play Store ở trạng thái hiện tại" },
   "dashboardKpis": [
     { "id": "nen", "label": "Nén (Compression)", "display": "N/A", "status": "neutral", "note": "Không đổi — vẫn không có đồng hồ bấm giờ thật cho bất kỳ phiên nào.", "source": "TELEMETRY-SAFECALL.md" },
-    { "id": "rework", "label": "Rework Rate", "display": "44.4%", "status": "warning", "note": "4/9 vòng — không đổi. Telemetry vẫn KHÔNG có khối nào cho phiên verify tay FR-11/FR-12 (phát hiện bug call_history, Decision Log khối #7) lẫn phiên viết ManualQATestScript (commit 36a4ab7) — mẫu số ngày càng không phủ phần việc gần nhất.", "source": "TELEMETRY-SAFECALL.md" },
+    { "id": "rework", "label": "Rework Rate", "display": "33.3%", "status": "warning", "note": "5/15 vòng — không đổi trong lượt này (phiên 2026-11-09 chưa bổ sung khối Telemetry riêng cho mình, xem 'Ghi chú trung thực' bên dưới). Mẫu số/tử số vẫn như lượt 5 (2026-11-08).", "source": "TELEMETRY-SAFECALL.md" },
     { "id": "humanedit", "label": "Human-edit Rate", "display": "0%", "status": "neutral", "note": "0% cho CODE sản phẩm — không đổi.", "source": "TELEMETRY-SAFECALL.md" },
-    { "id": "testcov", "label": "Test Coverage theo FR", "display": "46.2%", "status": "warning", "note": "6/13 FR Tested-Pass (FR-1, FR-5, FR-7, FR-9, FR-11, FR-12) — tăng mạnh sau verify tay thật qua adb emu gsm call/UI tap (2026-11-08). FR-12 'một phần' (nhánh số ẩn danh chưa verify được bằng emulator). FR-13 vẫn 🟡 Code-only, chưa trigger WorkManager thật.", "source": "RTM-SAFECALL.md (đã cập nhật, lượt 3)" },
-    { "id": "govgap", "label": "Governance Gap Rate", "display": "36.4%", "status": "critical", "note": "8/22 — tăng từ 17.6% (lượt audit trước TÍNH THIẾU 5 gap đã có sẵn trong Delegation Map, không phải governance xấu đi thêm). Cả 8 dòng lệch Leash (3 cũ + 5 mới) đã 'Đóng retroactive' qua AskUserQuestion, nhưng vẫn tính đủ vào tử số theo quy ước 'đóng ≠ xoá lịch sử'.", "source": "DELEGATION-MAP-SAFECALL.md (đếm lại trực tiếp, lượt 4)" },
-    { "id": "riskopen", "label": "Risk Open Rate", "display": "92.9%", "status": "warning", "note": "13/14 — không đổi. R9 vẫn là rủi ro duy nhất đóng hẳn (L×I=0). Risk Register CHƯA có entry cho bug call_history/CallMonitorService (Decision Log khối #7, nghi SQLite lock) — đề xuất PM gán L/I, không tự thêm.", "source": "RISK-SAFECALL.md" },
-    { "id": "testcount", "label": "40 Kotlin + 64 Dart, PASS cả 2 toolchain", "display": "104 case, 100% PASS", "status": "good", "note": "Không đổi trong lượt này — không có test tự động mới được viết. ManualQATestScript-SafeCall-Phase1.md (mới) là kịch bản test TAY, không phải test tự động, không cộng vào số này.", "source": "build/app/test-results/ + flutter test (chạy trực tiếp 2026-11-08)" }
+    { "id": "testcov", "label": "Test Coverage theo FR", "display": "100%", "status": "good", "note": "13/13 FR Tested-Pass — toàn bộ FR-1..FR-13 nay có ít nhất 1 lần verify tay thật qua emulator (2026-11-09: verify FR-2/FR-3/FR-4/FR-6/FR-8/FR-10, trước đó FR-1/FR-5/FR-7/FR-9/FR-11/FR-12/FR-13 đã Pass từ các lượt 2026-11-06..08). KHÔNG đồng nghĩa 'sẵn sàng release' — nhiều AC phụ từng FR vẫn chưa verify riêng (xem RTM), và FR-8/AC5 (endCall() thật) mới chỉ chạy trên emulator, ADR-005 vẫn yêu cầu bắt buộc test đa OEM trên thiết bị thật trước khi release (chưa làm — Task 6.5.3 WBS).", "source": "RTM-SAFECALL.md (cập nhật 2026-11-09)" },
+    { "id": "govgap", "label": "Governance Gap Rate", "display": "36.4%", "status": "critical", "note": "8/22 — không đổi trong lượt này. Lưu ý mới: 3 file sửa trong lượt verify FR-2/3/4/8 hôm nay (CallMonitorService.kt, TelephonyCallbackObserver.kt, CallLogNumberResolver.kt) đều là code Layer-0 hot-path (chạm pipeline chặn/giám sát cuộc gọi) — CHƯA xác nhận có đi qua cổng 'Pre-Build Leash Gate' (hiệu lực từ 2026-11-08) hay không trước khi sửa. Không tự tính vào tử số (chưa rõ các sửa đổi sửa-bug-khi-test có tính là 'Task ≥L3' theo đúng định nghĩa WBS hay không) — đề xuất PM xem xét, không tự kết luận.", "source": "DELEGATION-MAP-SAFECALL.md (không đổi, lượt 4)" },
+    { "id": "riskopen", "label": "Risk Open Rate", "display": "92.9%", "status": "warning", "note": "13/14 — không đổi (không sửa RISK-SAFECALL.md trong lượt này). Phát hiện cần PM cập nhật risk register: giả thuyết gốc cho bug Decision Log khối #7 ('nghi SQLiteLog lock') đã được XÁC NHẬN SAI — nguyên nhân thật là 2 bug khác (executor Binder thread sai trong TelephonyCallbackObserver; cú pháp 'LIMIT 1' bị CallLogProvider từ chối trong CallLogNumberResolver), cả hai ĐÃ SỬA và verify lại PASS 2026-11-09. Risk Register vẫn chưa có entry cho bug này (dù đã đóng) — đề xuất PM bổ sung rồi đóng ngay, không tự thêm.", "source": "RISK-SAFECALL.md (không đổi) + RTM-SAFECALL.md dòng FR-2 (root cause đúng, 2026-11-09)" },
+    { "id": "testcount", "label": "40 Kotlin unit + 64 Dart + 6 instrumented, PASS cả 3 loại", "display": "110 case, 100% PASS", "status": "good", "note": "Tăng từ 104 — 6 instrumented test (androidTest, framework thật không mock) nay có bằng chứng CHẠY thật lần đầu qua 'adb shell am instrument': AnonymousCallBlockingInstrumentedTest (4 case, commit df47a61 — trước đó chỉ 'đã viết') và PermissionCheckWorkerInstrumentedTest (2 case, MỚI 2026-11-09). 40 Kotlin unit + 64 Dart KHÔNG được chạy lại trong lượt này (kế thừa bằng chứng PASS từ lượt trước, chưa re-verify).", "source": "adb shell am instrument (chạy trực tiếp 2026-11-09) + build/app/test-results/ + flutter test (lượt trước)" }
   ],
   "knowledgeHealth": [
     { "id": "c1", "label": "Traceability Coverage", "display": "95%", "target": "≥80%", "status": "good", "note": "19/20 — không đổi. Chỉ NFR-5 (deferred chủ động) còn không trace.", "source": "RTM-SAFECALL.md (đã cập nhật)" },
-    { "id": "c2", "label": "Change Coupling", "display": "0%", "target": "≥70%", "status": "critical", "note": "0/10 — không đổi. Commit mới nhất (36a4ab7, ManualQATestScript) là docs-only, không đổi code nên không cộng vào mẫu số.", "source": "git diff --name-only từng cặp commit" },
-    { "id": "c3", "label": "Freshness", "display": "70%", "target": "≥85%", "status": "warning", "note": "7/10 fresh (tăng từ 50%): DOR, RTM, DECISION-LOG, DELEGATION-MAP, MODULEMAP, DASHBOARD (tự sửa KPI #5 sai), KNOWLEDGE-HEALTH. Vẫn stale: RISK (thiếu risk cho bug khối #7), TELEMETRY, WEEKLY — chưa phản ánh phiên verify tay + ManualQATestScript.", "source": "Đối chiếu tay 10 file docs/governance/*.md, 2026-11-08 (lần 3)" },
+    { "id": "c2", "label": "Change Coupling", "display": "0%", "target": "≥70%", "status": "critical", "note": "0/10 — không đổi trong lượt này (chưa đếm lại kèm 3 commit code mới 2026-11-09).", "source": "git diff --name-only từng cặp commit" },
+    { "id": "c3", "label": "Freshness", "display": "80%", "target": "≥85%", "status": "warning", "note": "Không đổi trong lượt này — RTM vừa fresh nhất (2026-11-09) nhưng DASHBOARD/KNOWLEDGE-HEALTH/TELEMETRY/RISK chưa được đối chiếu lại đầy đủ theo đúng RTM mới nhất ngoài 2 trường testcov/testcount ở trên.", "source": "Đối chiếu tay (lần trước, 2026-11-08 lần 4) — chưa làm lại đầy đủ lượt này" },
     { "id": "c4", "label": "Orphan Rate", "display": "5%", "target": "≤15%", "status": "good", "note": "1/20 — không đổi. Chỉ còn NFR-5 (deferred chủ động).", "source": "RTM-SAFECALL.md, Glob/Grep xác nhận" },
     { "id": "c5", "label": "Review Evidence", "display": "N/A*", "target": "≥90%", "status": "neutral", "note": "Không ép ra tỷ lệ toàn cục. Không đổi trong lượt này.", "source": "RISK-SAFECALL.md mục Log self-review/approve" },
-    { "id": "c6", "label": "Decision Coverage", "display": "100%", "target": "≥75%", "status": "good", "note": "9/9 — không đổi. Bug call_history (khối #7) đã ghi vào Decision Log, không cần ADR riêng (không phải quyết định kiến trúc mới).", "source": "docs/adr/ADR-001..ADR-008" },
-    { "id": "c7", "label": "Retrieval Quality", "display": "95.8%", "target": "≥70%", "status": "good", "note": "23/24 — tăng từ 95%. Câu spot-check 6 (FR-9 AC2/AC5 + ManualQATestScript) tìm đúng-đủ 4/4 mục, phân biệt đúng 'có kịch bản test tay' với 'đã chạy thật'.", "source": "KNOWLEDGE-HEALTH-SAFECALL.md mục Spot-check c7" }
+    { "id": "c6", "label": "Decision Coverage", "display": "100%", "target": "≥75%", "status": "good", "note": "9/9 → xem Decision Log #8 mới (đính chính #7) — vẫn không cần ADR riêng, là sửa bug không phải quyết định kiến trúc mới.", "source": "docs/adr/ADR-001..ADR-008" },
+    { "id": "c7", "label": "Retrieval Quality", "display": "96.4%", "target": "≥70%", "status": "good", "note": "27/28 — không đổi trong lượt này (chưa thêm spot-check mới cho phiên 2026-11-09).", "source": "KNOWLEDGE-HEALTH-SAFECALL.md mục Spot-check c7" }
   ],
   "risks": [
-    { "id": "R2",  "label": "Overlay lúc đổ chuông chưa test đa OEM thật", "L": 4, "I": 5, "score": 20, "owner": "QA/PM" },
+    { "id": "R2",  "label": "Overlay lúc đổ chuông chưa test đa OEM thật — emulator đã verify AC1/AC2/AC5/AC6/AC7, vẫn cần thiết bị thật", "L": 4, "I": 5, "score": 20, "owner": "QA/PM" },
     { "id": "R1",  "label": "Độ tin cậy phát hiện cuộc gọi API 29 vs 31+ chưa có test hồi quy", "L": 4, "I": 4, "score": 16, "owner": "Dev lead" },
     { "id": "R11", "label": "AI viết code \"trước, không verify\" — lỗi chỉ lộ lúc build/test thật", "L": 4, "I": 4, "score": 16, "owner": "Dev lead" },
     { "id": "R4",  "label": "Race condition prompt sau-cuộc-gọi vs overlay lúc-đổ-chuông chưa test", "L": 3, "I": 4, "score": 12, "owner": "Dev lead" },
-    { "id": "R3",  "label": "TelecomManager.endCall() chưa verify đa OEM thật", "L": 2, "I": 5, "score": 10, "owner": "Dev lead" },
+    { "id": "R3",  "label": "TelecomManager.endCall() chạy được trên emulator (SUCCESS) nhưng CHƯA verify đa OEM thật", "L": 2, "I": 5, "score": 10, "owner": "Dev lead" },
     { "id": "R6",  "label": "Hiệu năng matching khi blocklist lớn — sanity-check chưa chạy", "L": 2, "I": 5, "score": 10, "owner": "Dev lead" },
     { "id": "R12", "label": "AI tự suy luận lại pseudocode đã mất thay vì dừng hỏi (hard-stop vi phạm)", "L": 2, "I": 5, "score": 10, "owner": "PM + Dev lead" },
     { "id": "R5",  "label": "Ngưỡng prefix 4 ký tự chưa xác nhận với stakeholder", "L": 3, "I": 3, "score": 9, "owner": "PM" },
@@ -38,18 +38,18 @@
   ],
   "rtm": [
     { "id": "FR-1", "label": "Chặn real-time (exact + prefix)", "status": "pass" },
-    { "id": "FR-2", "label": "Phát hiện cuộc gọi kết thúc + hỏi xác nhận", "status": "not-started" },
-    { "id": "FR-3", "label": "Xác nhận \"Có\" → thêm blocklist", "status": "not-started" },
-    { "id": "FR-4", "label": "Xác nhận \"Không\" / bỏ qua", "status": "not-started" },
+    { "id": "FR-2", "label": "Phát hiện cuộc gọi kết thúc + hỏi xác nhận", "status": "pass" },
+    { "id": "FR-3", "label": "Xác nhận \"Có\" → thêm blocklist", "status": "pass" },
+    { "id": "FR-4", "label": "Xác nhận \"Không\" / bỏ qua", "status": "pass" },
     { "id": "FR-5", "label": "Quản lý blocklist thủ công", "status": "pass" },
-    { "id": "FR-6", "label": "Lịch sử cuộc gọi", "status": "not-started" },
+    { "id": "FR-6", "label": "Lịch sử cuộc gọi (3/9 trạng thái badge đã verify)", "status": "pass" },
     { "id": "FR-7", "label": "Onboarding và cấp quyền", "status": "pass" },
-    { "id": "FR-8", "label": "Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi", "status": "not-started" },
+    { "id": "FR-8", "label": "Xác nhận lừa đảo lúc đổ chuông + ngắt cuộc gọi (emulator, 5/10 AC — CẦN test đa OEM thật trước release)", "status": "pass" },
     { "id": "FR-9", "label": "Chặn theo đầu số (prefix)", "status": "pass" },
-    { "id": "FR-10", "label": "Export/Import blocklist", "status": "partial" },
+    { "id": "FR-10", "label": "Export/Import blocklist (7/11 AC)", "status": "pass" },
     { "id": "FR-11", "label": "Ưu tiên Danh bạ (CONTACTS-PRIORITY)", "status": "pass" },
-    { "id": "FR-12", "label": "Bật/Tắt chặn nâng cao (BLOCK-TOGGLE, một phần)", "status": "pass" },
-    { "id": "FR-13", "label": "Kiểm tra quyền định kỳ (PERMISSION-CHECK)", "status": "partial" },
+    { "id": "FR-12", "label": "Bật/Tắt chặn nâng cao (BLOCK-TOGGLE) — đủ 3/3 switch", "status": "pass" },
+    { "id": "FR-13", "label": "Kiểm tra quyền định kỳ (PERMISSION-CHECK, AC1-AC4)", "status": "pass" },
     { "id": "DB", "label": "Cross-cutting — Schema & Database", "status": "pass" },
     { "id": "NFR-1", "label": "Dữ liệu cá nhân bên thứ ba (xoá khi gỡ app, Export)", "status": "partial" },
     { "id": "NFR-2", "label": "Minh bạch lý do xin quyền", "status": "pass" },
@@ -67,7 +67,8 @@
     { "wbs": "9.3.2 / 10.3.1", "task": "Migration blocklist_meta +4 cột", "actual": "A", "shouldBe": "A+", "reason": "Migration trên dữ liệu người dùng đã có, bảng hot-path đọc mỗi cuộc gọi. ✅ Ký duyệt retroactive 2026-11-08." },
     { "wbs": "11.2.2", "task": "SafeCallApplication.kt + đổi android:name Manifest", "actual": "A", "shouldBe": "A+", "reason": "Ảnh hưởng mọi lần khởi động app. ✅ Ký duyệt retroactive 2026-11-08." },
     { "wbs": "11.1.1 / 11.2.3", "task": "PermissionStatusChecker + PermissionCheckWorker", "actual": "A", "shouldBe": "A+", "reason": "Chạm quyền hệ thống + chạy nền WorkManager ngoài lifecycle Activity. ✅ Ký duyệt retroactive 2026-11-08." },
-    { "wbs": "9.1.x / 10.1.x", "task": "SettingsScreen/SettingsService (ghi blocklist_meta)", "actual": "A", "shouldBe": "A+", "reason": "UI ghi trực tiếp vào bảng Layer 0 mà hot-path đọc mỗi cuộc gọi. ✅ Ký duyệt retroactive 2026-11-08." }
+    { "wbs": "9.1.x / 10.1.x", "task": "SettingsScreen/SettingsService (ghi blocklist_meta)", "actual": "A", "shouldBe": "A+", "reason": "UI ghi trực tiếp vào bảng Layer 0 mà hot-path đọc mỗi cuộc gọi. ✅ Ký duyệt retroactive 2026-11-08." },
+    { "wbs": "? (chưa xác định mã WBS)", "task": "Sửa bug CallMonitorService.kt/TelephonyCallbackObserver.kt/CallLogNumberResolver.kt khi verify tay FR-2/3/4/8 (2026-11-09)", "actual": "A (tự sửa trong lượt test)", "shouldBe": "? — chưa rõ", "reason": "Code Layer-0 hot-path (pipeline giám sát cuộc gọi), sửa NGAY trong lúc test tay, KHÔNG qua cổng Pre-Build Leash Gate (hiệu lực từ 2026-11-08) vì phát sinh ngoài kế hoạch — CHƯA được PM xác nhận đây có tính là Task ≥L3 cần xét Leash hay là bugfix nhỏ nằm trong leash sẵn có của Task 4.1.1 gốc. Ghi nhận công khai, không tự đóng." }
   ],
   "decisionLog": [
     { "n": 1, "task": "Android resource setup", "whatWrong": "Sót file .md trong mipmap-hdpi làm mergeDebugResources fail", "level": "L3 / Leash A" },
@@ -76,22 +77,26 @@
     { "n": 4, "task": "Database init 2 phía", "whatWrong": "PRAGMA journal_mode=WAL trong transaction — SQLite error, hỏng toàn bộ đọc DB", "level": "L3 nominal, đáng lẽ A+ (gap)" },
     { "n": 5, "task": "LLD review (pseudocode 4 hàm lõi)", "whatWrong": "Tự suy luận lại pseudocode đã mất thay vì DỪNG hỏi — vi phạm hard-stop", "level": "L5 Restricted (vi phạm)" },
     { "n": 6, "task": "SafeCallDatabaseHelper PRAGMA (2026-11-08)", "whatWrong": "execSQL dùng cho PRAGMA trả về 1 dòng — phải dùng rawQuery; vô hiệu hoá EXACT/PREFIX blocking ~2 tuần, fail-open nuốt lỗi âm thầm", "level": "L3 / Leash A (fix nhỏ, hậu quả lớn)" },
-    { "n": 7, "task": "Verify tay FR-11/FR-12 — phát hiện phụ CallMonitorService", "whatWrong": "handleCallEnded() không insert call_history cho cuộc gọi 'cho qua rồi kết thúc' — nghi SQLiteLog lock contention giữa sqflite và SQLiteOpenHelper, CHƯA xác nhận nguyên nhân, CHƯA sửa", "level": "L3 Leash A (verify) / fix sau nên A+ (L4)" }
+    { "n": 7, "task": "Verify tay FR-11/FR-12 — phát hiện phụ CallMonitorService", "whatWrong": "handleCallEnded() không insert call_history cho cuộc gọi 'cho qua rồi kết thúc' — nghi SQLiteLog lock contention giữa sqflite và SQLiteOpenHelper, CHƯA xác nhận nguyên nhân, CHƯA sửa", "level": "L3 Leash A (verify) / fix sau nên A+ (L4) — ĐÍNH CHÍNH ở #8: giả thuyết 'lock contention' SAI" },
+    { "n": 8, "task": "Verify tay FR-2/3/4/8 (2026-11-09) — root cause THẬT của bug #7", "whatWrong": "KHÔNG phải SQLite lock. 2 bug độc lập: (a) TelephonyCallbackObserver.register() dùng executor chạy trên Binder thread hệ thống thay vì main thread — RingingScamOverlay.show() gọi WindowManager.addView() trên thread đó ném RuntimeException, phá vỡ lastState tracking; (b) CallLogNumberResolver nhét 'LIMIT 1' vào tham số sortOrder của ContentResolver.query() — CallLogProvider API 34 từ chối bằng IllegalArgumentException('Invalid token LIMIT'), 100% lần gọi đều throw. Cả 2 đã sửa, verify lại PASS qua call_history/pending_prompts/notification thật.", "level": "L3 Leash A (sửa trong lúc verify tay, chưa qua Pre-Build Gate — xem delegationGaps)" }
   ],
   "weeklyNextSteps": [
-    "Điều tra Decision Log khối #7 (call_history không ghi khi cuộc gọi 'cho qua rồi kết thúc') — thử lại với adb emu gsm accept + hangup, thêm log tạm nếu lặp lại được.",
-    "Chạy thật kịch bản docs/testing/ManualQATestScript-SafeCall-Phase1.md (FR-2/3/4/6/8/9-AC2-AC5/10/13) — đã có kịch bản adb cụ thể, CHƯA ai chạy.",
-    "Bổ sung ≥1 risk mới vào RISK-SAFECALL.md cho bug khối #7 — cần PM gán L/I.",
-    "Cập nhật TELEMETRY-SAFECALL.md/WEEKLY-SAFECALL.md cho phiên verify tay FR-11/FR-12 + phiên viết ManualQATestScript — vẫn stale (ngoài phạm vi Dashboard/Knowledge Health).",
-    "Trigger PermissionCheckWorker qua WorkManager thật (TestListenableWorkerBuilder hoặc androidx.work:work-testing) để đóng FR-13 Tested-Pass.",
+    "✅ ĐÃ XONG 2026-11-09 (không còn cần làm lại): điều tra Decision Log khối #7, chạy connectedDebugAndroidTest cho AnonymousCallBlockingInstrumentedTest, trigger PermissionCheckWorker qua WorkManager thật.",
+    "Cập nhật RISK-SAFECALL.md: thêm/đóng risk cho bug Decision Log #7/#8 với root cause đúng (đã sửa) — hiện Risk Register chưa có entry nào cho bug này dù đã đóng.",
+    "Xác nhận với PM: 3 file sửa trong lúc verify tay hôm nay (CallMonitorService.kt, TelephonyCallbackObserver.kt, CallLogNumberResolver.kt) có cần xét Leash retroactive theo đúng 'Cổng chặn Pre-Build' hay không (xem delegationGaps dòng mới).",
+    "Task 6.5.3 (WBS) — test FR-8 trên thiết bị thật đa OEM, BẮT BUỘC theo ADR-005 trước khi release, dù AC5 (endCall) đã chạy PASS trên emulator.",
+    "Bổ sung 1 khối Telemetry cho commit df47a61 VÀ cho phiên verify 2026-11-09 (6 commit: fix threading, fix LIMIT 1, 3 lần verify RTM, verify FR-8) — TELEMETRY-SAFECALL.md vẫn chưa cập nhật.",
     "Chạy WBS Task 7.7.3 (sanity-check 10.000 entry) — đóng test cho CẢ NFR-4 và NFR-6 cùng lúc.",
-    "Review đối chiếu chi tiết Nghị định 13/2023/NĐ-CP với thiết kế hiện tại (NFR-7)."
+    "Review đối chiếu chi tiết Nghị định 13/2023/NĐ-CP với thiết kế hiện tại (NFR-7).",
+    "Verify tay các AC phụ còn thiếu theo từng FR (xem RTM-SAFECALL.md) — core đã Pass nhưng nhiều AC biên (contact exemption, race condition, schema cũ hơn...) vẫn chưa test riêng."
   ],
   "sources": [
-    "DASHBOARD-SAFECALL.md (lượt 4)", "WEEKLY-SAFECALL.md", "KNOWLEDGE-HEALTH-SAFECALL.md (lần 3)", "MODULEMAP-SAFECALL.md",
-    "RTM-SAFECALL.md (lượt 3 — verify tay FR-1/FR-9/FR-11/FR-12)", "RISK-SAFECALL.md", "DELEGATION-MAP-SAFECALL.md (đã có 5 gap mới + sign-off)",
-    "DECISION-LOG-SAFECALL.md (khối #6, #7)", "DOR-SAFECALL.md", "TELEMETRY-SAFECALL.md", "docs/adr/ADR-008-settings-storage-and-permission-check-worker.md",
-    "docs/testing/ManualQATestScript-SafeCall-Phase1.md (mới, commit 36a4ab7)",
-    "git log --stat (19 commit)", "build/app/test-results/testDebugUnitTest/ (2026-11-08)", "flutter test (chạy trực tiếp 2026-11-08)", "SRS-SafeCall-Phase1.md v6.1"
+    "DASHBOARD-SAFECALL.md (cập nhật 2026-11-09)", "WEEKLY-SAFECALL.md (chưa cập nhật theo lượt này)", "KNOWLEDGE-HEALTH-SAFECALL.md (lần 4, chưa cập nhật theo lượt này)", "MODULEMAP-SAFECALL.md",
+    "RTM-SAFECALL.md (cập nhật 2026-11-09 — verify tay FR-2/FR-3/FR-4/FR-6/FR-8/FR-10)", "RISK-SAFECALL.md (chưa cập nhật theo lượt này)", "DELEGATION-MAP-SAFECALL.md (lượt 4, +1 gap mới chưa xác nhận)",
+    "DECISION-LOG-SAFECALL.md (khối #6, #7, #8 mới)", "DOR-SAFECALL.md", "TELEMETRY-SAFECALL.md (chưa cập nhật theo lượt này)", "docs/adr/ADR-005-call-termination-mechanism.md", "docs/adr/ADR-008-settings-storage-and-permission-check-worker.md",
+    "docs/testing/ManualQATestScript-SafeCall-Phase1.md (commit 36a4ab7)",
+    "android/app/src/androidTest/kotlin/com/safecall/callscreening/AnonymousCallBlockingInstrumentedTest.kt (ĐÃ CHẠY PASS 2026-11-09, không còn chỉ 'đã viết')",
+    "android/app/src/androidTest/kotlin/com/safecall/callscreening/PermissionCheckWorkerInstrumentedTest.kt (MỚI, đã chạy PASS 2026-11-09)",
+    "git log --stat", "adb shell am instrument (chạy trực tiếp 2026-11-09)", "sqlite3 (verify trực tiếp DB thật trên emulator-5554, 2026-11-09)", "SRS-SafeCall-Phase1.md v6.1"
   ]
 }
